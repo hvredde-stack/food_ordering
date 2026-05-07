@@ -5,7 +5,8 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { Stat } from "@/components/ui/stat";
-import { formatMoney } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/empty-state";
+import { formatMoney, formatRelativeTime } from "@/lib/utils";
 
 export default async function AdminOverview({
   params,
@@ -23,7 +24,14 @@ export default async function AdminOverview({
 
   const supabase = getSupabaseAdmin();
   const sinceIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  const [{ data: orders24h }, { data: dishes }, { data: tables }, { data: sentiment24h }] = await Promise.all([
+  const [
+    { data: orders24h },
+    { data: dishes },
+    { data: tables },
+    { data: sentiment24h },
+    { data: recentFeedback },
+    { data: ratingAgg },
+  ] = await Promise.all([
     supabase
       .from("orders")
       .select("id, total_cents, status")
@@ -36,6 +44,19 @@ export default async function AdminOverview({
       .select("kind")
       .eq("restaurant_id", restaurant.id)
       .gte("created_at", sinceIso),
+    // Five most recent reviews — full rating + comment + when. Customers
+    // leave these on the /feedback screen at end of meal.
+    supabase
+      .from("feedback")
+      .select("id, rating, comment, created_at")
+      .eq("restaurant_id", restaurant.id)
+      .order("created_at", { ascending: false })
+      .limit(5),
+    // Lifetime totals so the card can show "★4.6 · 23 reviews".
+    supabase
+      .from("feedback")
+      .select("rating")
+      .eq("restaurant_id", restaurant.id),
   ]);
 
   const totalRevenue = (orders24h ?? [])
@@ -45,6 +66,12 @@ export default async function AdminOverview({
   const sad   = (sentiment24h ?? []).filter((s) => s.kind === "sad").length;
 
   const ordersCount = (orders24h ?? []).filter((o) => o.status !== "cancelled").length;
+
+  const ratings = (ratingAgg ?? []).map((r) => r.rating as number);
+  const reviewCount = ratings.length;
+  const avgRating = reviewCount === 0
+    ? null
+    : ratings.reduce((s, r) => s + r, 0) / reviewCount;
   return (
     <div className="max-w-6xl mx-auto p-6 md:p-10 space-y-10">
       <PageHeader
@@ -87,11 +114,73 @@ export default async function AdminOverview({
             <QuickLink href={`/${slug}/admin/menu`}     label="Manage menu" />
             <QuickLink href={`/${slug}/admin/tables`}   label="Manage tables & QR codes" />
             <QuickLink href={`/${slug}/admin/orders`}   label="View live orders" />
+            <QuickLink href={`/${slug}/admin/analytics`} label="See full analytics" />
             <QuickLink href={`/${slug}/kitchen`}        label="Open kitchen dashboard" external />
             <QuickLink href={`/${slug}/t`}              label="Customer scan landing (preview)" external />
           </CardBody>
         </Card>
       </div>
+
+      {/* Recent reviews. Customers fill these out on /feedback at the end
+          of the meal — star rating + an optional comment. We show the
+          last five here so the owner can glance at the room without
+          navigating to Analytics. Full history lives in Analytics. */}
+      <Card>
+        <CardHeader className="flex justify-between items-baseline gap-3">
+          <div>
+            <div className="font-semibold">Recent reviews</div>
+            <div className="text-xs text-muted mt-1">
+              {reviewCount === 0
+                ? "Your first review will land here."
+                : (
+                  <>
+                    <span className="text-accent-2 tabular-nums">
+                      ★ {avgRating!.toFixed(1)}
+                    </span>
+                    <span className="mx-2 opacity-40">·</span>
+                    <span className="tabular-nums">{reviewCount.toLocaleString()} review{reviewCount === 1 ? "" : "s"} all-time</span>
+                  </>
+                )}
+            </div>
+          </div>
+          <Link
+            href={`/${slug}/admin/analytics`}
+            className="font-mono text-[10px] tracking-[0.18em] uppercase text-muted hover:text-fg transition shrink-0"
+          >
+            See all →
+          </Link>
+        </CardHeader>
+        {reviewCount === 0 ? (
+          <CardBody>
+            <EmptyState
+              eyebrow="No reviews yet"
+              title="Quiet room."
+              description="When a diner finishes their meal and taps the feedback button, their star rating + comment appears here within seconds."
+            />
+          </CardBody>
+        ) : (
+          <div className="divide-y divide-border">
+            {(recentFeedback ?? []).map((f) => (
+              <div key={f.id as string} className="px-5 py-4">
+                <div className="flex justify-between items-baseline gap-3">
+                  <div className="font-mono text-sm text-accent-2 tabular-nums tracking-[0.1em]">
+                    {"★".repeat(f.rating as number)}
+                    <span className="opacity-30">{"★".repeat(5 - (f.rating as number))}</span>
+                  </div>
+                  <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-muted shrink-0">
+                    {formatRelativeTime(f.created_at as string)}
+                  </div>
+                </div>
+                {f.comment && (
+                  <p className="mt-2 text-[15px] leading-relaxed text-fg/90 italic font-display">
+                    &ldquo;{f.comment as string}&rdquo;
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
     </div>
   );
 }
