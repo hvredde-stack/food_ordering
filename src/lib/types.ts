@@ -6,6 +6,14 @@ export type ItemStatus = OrderStatus;
 export type SessionStatus = "active" | "expired" | "cleaned";
 export type SentimentKind = "happy" | "sad";
 export type OrderType = "dine-in" | "takeout";
+/**
+ * How a dish (and its order line) is sold. "each" is the default for the
+ * vast majority of items. Weight units (lb / kg / oz / g) let restaurants
+ * sell things like "$15/lb fish pakora" with a fractional customer-picked
+ * quantity. Stored on dishes.price_unit and snapshotted onto each
+ * order_items.unit at order time so historical prices survive dish edits.
+ */
+export type PriceUnit = "each" | "lb" | "kg" | "oz" | "g";
 
 export interface Restaurant {
   id: string;
@@ -48,6 +56,8 @@ export interface Dish {
   name: string;
   description: string | null;
   price_cents: number;
+  /** Defaults to "each" — weight units enable fractional quantity. */
+  price_unit: PriceUnit;
   image_url: string | null;
   available: boolean;
   position: number;
@@ -103,7 +113,10 @@ export interface OrderItem {
   dish_id: string;
   dish_name: string;
   unit_price_cents: number;
+  /** Decimal: integer for "each" items, fractional for weight units. */
   quantity: number;
+  /** Snapshot of the dish's price_unit at order time. */
+  unit: PriceUnit;
   status: ItemStatus;
   notes: string | null;
   customer_name: string | null;

@@ -6,10 +6,13 @@ import { json, parseJson, unauthorized, notFound, serverError } from "@/lib/api"
 import { getAdminContext } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
+const PRICE_UNITS = ["each", "lb", "kg", "oz", "g"] as const;
+
 const PatchBody = z.object({
   name: z.string().min(1).max(120).optional(),
   description: z.string().max(500).nullable().optional(),
   price_cents: z.number().int().nonnegative().optional(),
+  price_unit: z.enum(PRICE_UNITS).optional(),
   image_url: z.string().url().nullable().optional(),
   category_id: z.string().uuid().nullable().optional(),
   available: z.boolean().optional(),

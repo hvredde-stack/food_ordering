@@ -6,9 +6,12 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
 import { DishImage } from "@/components/ui/dish-image";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
 import { getSupabaseBrowser } from "@/lib/supabase/client";
 import { formatMoney } from "@/lib/utils";
-import type { Dish, MenuCategory } from "@/lib/types";
+import { PRICE_UNIT_LABELS, PRICE_UNIT_SHORT } from "@/lib/weight";
+import type { Dish, MenuCategory, PriceUnit } from "@/lib/types";
 
 interface Props {
   currency: string;
@@ -84,17 +87,18 @@ export function MenuManager({ currency, initialDishes, initialCategories }: Prop
   }, [dishes]);
 
   return (
-    <div className="max-w-5xl mx-auto p-8 space-y-8">
-      <div className="flex items-end justify-between gap-3 flex-wrap">
-        <div>
-          <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">Menu</div>
-          <h1 className="font-display text-4xl md:text-5xl tracking-tight mt-3">Categories &amp; dishes</h1>
-        </div>
-        <Button onClick={() => setEditing({ name: "", price_cents: 0, available: true })}>
-          <Plus className="w-4 h-4" />
-          <span className="font-mono text-[11px] tracking-[0.14em] uppercase">New dish</span>
-        </Button>
-      </div>
+    <div className="max-w-5xl mx-auto p-6 md:p-10 space-y-8">
+      <PageHeader
+        eyebrow="Menu"
+        title="Categories & dishes"
+        lede="Group dishes into categories. Set a price per unit (each / lb / kg / oz / g) — weight units enable fractional ordering at checkout."
+        actions={
+          <Button onClick={() => setEditing({ name: "", price_cents: 0, price_unit: "each", available: true })}>
+            <Plus className="w-4 h-4" />
+            <span className="font-mono text-[11px] tracking-[0.14em] uppercase">New dish</span>
+          </Button>
+        }
+      />
 
       <Card>
         <CardHeader>
@@ -148,11 +152,17 @@ export function MenuManager({ currency, initialDishes, initialCategories }: Prop
 
       {/* Dishes — now grouped under their category, with one "Uncategorized" bucket. */}
       {dishes.length === 0 ? (
-        <Card>
-          <CardBody className="text-center py-12 text-muted">
-            No dishes yet — add one to get started.
-          </CardBody>
-        </Card>
+        <EmptyState
+          eyebrow="Empty menu"
+          title="No dishes yet."
+          description="Add a category first, then create your first dish. You can mix per-item pricing (a $5 dosa) with weight pricing (a $15/lb fish pakora) on the same menu."
+          action={
+            <Button onClick={() => setEditing({ name: "", price_cents: 0, price_unit: "each", available: true })}>
+              <Plus className="w-4 h-4" />
+              <span className="font-mono text-[11px] tracking-[0.14em] uppercase">Add the first dish</span>
+            </Button>
+          }
+        />
       ) : (
         <div className="space-y-6">
           {categories.map((c) => {
@@ -258,6 +268,7 @@ function DishRow({
           <div className="font-display text-lg tracking-tight truncate">{dish.name}</div>
           <div className="font-mono text-sm tabular-nums whitespace-nowrap">
             {formatMoney(dish.price_cents, currency)}
+            <span className="text-muted">{PRICE_UNIT_SHORT[dish.price_unit ?? "each"]}</span>
           </div>
         </div>
         <div className="text-xs text-muted font-mono tracking-wide mt-1">
@@ -297,6 +308,7 @@ function DishEditor({
   const [name, setName] = useState(dish.name ?? "");
   const [description, setDescription] = useState(dish.description ?? "");
   const [priceCents, setPriceCents] = useState(dish.price_cents ?? 0);
+  const [priceUnit, setPriceUnit] = useState<PriceUnit>(dish.price_unit ?? "each");
   const [categoryId, setCategoryId] = useState(dish.category_id ?? "");
   const [available, setAvailable] = useState(dish.available ?? true);
   const [imageUrl, setImageUrl] = useState(dish.image_url ?? "");
@@ -366,6 +378,7 @@ function DishEditor({
         name,
         description: description || null,
         price_cents: Number(priceCents),
+        price_unit: priceUnit,
         category_id: categoryId || null,
         available,
         image_url: imageUrl || null,
@@ -416,29 +429,50 @@ function DishEditor({
                 onChange={(e) => setPriceCents(Number(e.target.value))}
                 className="mt-1"
               />
-              <span className="text-xs text-muted font-mono">= {formatMoney(priceCents, currency)}</span>
+              <span className="text-xs text-muted font-mono">
+                = {formatMoney(priceCents, currency)}
+                <span className="opacity-70">{PRICE_UNIT_SHORT[priceUnit]}</span>
+              </span>
             </label>
             <label className="block">
-              <span className="text-xs text-muted">Category</span>
+              <span className="text-xs text-muted">Sold by</span>
               <select
-                value={categoryId}
-                onChange={(e) => {
-                  if (e.target.value === "__new__") {
-                    setCreatingCategory(true);
-                  } else {
-                    setCategoryId(e.target.value);
-                  }
-                }}
+                value={priceUnit}
+                onChange={(e) => setPriceUnit(e.target.value as PriceUnit)}
                 className="mt-1 h-10 w-full rounded-lg border border-border bg-card px-3 text-sm"
               >
-                <option value="">Uncategorized</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+                {(Object.keys(PRICE_UNIT_LABELS) as PriceUnit[]).map((u) => (
+                  <option key={u} value={u}>{PRICE_UNIT_LABELS[u]}</option>
                 ))}
-                <option value="__new__">+ Create new category…</option>
               </select>
+              <span className="text-[10px] text-muted block mt-1 leading-tight">
+                {priceUnit === "each"
+                  ? "Whole-item pricing. Customer adds in counts."
+                  : "Customer picks a weight chip (¼/½/1/1½/2) at checkout."}
+              </span>
             </label>
           </div>
+
+          <label className="block">
+            <span className="text-xs text-muted">Category</span>
+            <select
+              value={categoryId}
+              onChange={(e) => {
+                if (e.target.value === "__new__") {
+                  setCreatingCategory(true);
+                } else {
+                  setCategoryId(e.target.value);
+                }
+              }}
+              className="mt-1 h-10 w-full rounded-lg border border-border bg-card px-3 text-sm"
+            >
+              <option value="">Uncategorized</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+              <option value="__new__">+ Create new category…</option>
+            </select>
+          </label>
 
           {creatingCategory && (
             <div className="flex gap-2 p-3 rounded-lg bg-bg-alt border border-border">

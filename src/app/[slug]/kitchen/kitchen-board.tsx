@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/badge";
 import { useClerkSupabaseClient } from "@/hooks/use-supabase";
 import { formatMoney, formatRelativeTime } from "@/lib/utils";
+import { formatQty } from "@/lib/weight";
 import type {
   ItemStatus,
   OrderItem,
@@ -246,15 +247,15 @@ function ItemControl({
     <div className="rounded-lg border border-border bg-bg p-2">
       <div className="flex justify-between items-center gap-2">
         <div className="font-medium text-sm">
-          ×{item.quantity} {item.dish_name}
+          {formatQty(Number(item.quantity), item.unit ?? "each")} <span className="ml-1">{item.dish_name}</span>
           {item.customer_name && (
             <span className="ml-2 text-[10px] uppercase tracking-wider text-muted">
               {item.customer_name}
             </span>
           )}
         </div>
-        <div className="text-xs text-muted whitespace-nowrap">
-          {formatMoney(item.unit_price_cents * item.quantity, currency)}
+        <div className="text-xs text-muted whitespace-nowrap tabular-nums">
+          {formatMoney(Math.round(item.unit_price_cents * Number(item.quantity)), currency)}
         </div>
       </div>
       {item.notes && <div className="text-xs italic text-muted mt-1">{item.notes}</div>}

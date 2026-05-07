@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { DishImage } from "@/components/ui/dish-image";
 import { useCart } from "@/components/customer/cart-provider";
 import { formatMoney, cn } from "@/lib/utils";
+import { PRICE_UNIT_SHORT, weightChips, formatQty, lineTotalCents } from "@/lib/weight";
 import type { Dish, MenuCategory, OrderType, Restaurant, RestaurantTable } from "@/lib/types";
 
 interface Props {
@@ -132,6 +133,9 @@ export function MenuView({ restaurant, table, orderType, categories, dishes }: P
 function DishRow({ dish, currency }: { dish: Dish; currency: string }) {
   const cart = useCart();
   const line = cart.lines.find((l) => l.dishId === dish.id);
+  const unit = dish.price_unit ?? "each";
+  const isWeight = unit !== "each";
+  const chips = weightChips(unit);
 
   return (
     <Card>
@@ -142,29 +146,48 @@ function DishRow({ dish, currency }: { dish: Dish; currency: string }) {
             <h3 className="font-display text-xl tracking-tight truncate">{dish.name}</h3>
             <div className="font-mono text-sm tabular-nums whitespace-nowrap">
               {formatMoney(dish.price_cents, currency)}
+              <span className="text-muted">{PRICE_UNIT_SHORT[unit]}</span>
             </div>
           </div>
           {dish.description && (
             <p className="text-sm text-muted mt-2 leading-relaxed line-clamp-3">{dish.description}</p>
           )}
+
+          {/* Add / quantity controls. Each-priced and weight-priced split
+              here: eaches use the +/- stepper (existing behaviour);
+              weight items get preset chips that map to ¼/½/1/1½/2 of the
+              dish's unit. The selected chip is the line quantity. */}
           <div className="mt-4">
-            {line ? (
-              <div className="inline-flex items-center bg-muted rounded-lg">
-                <button
-                  className="h-8 w-8 flex items-center justify-center hover:bg-border rounded-l-lg"
-                  onClick={() => cart.set(dish.id, line.quantity - 1)}
-                  aria-label="Decrease"
-                >
-                  <Minus className="w-4 h-4" />
-                </button>
-                <span className="px-3 text-sm font-semibold">{line.quantity}</span>
-                <button
-                  className="h-8 w-8 flex items-center justify-center hover:bg-border rounded-r-lg"
-                  onClick={() => cart.set(dish.id, line.quantity + 1)}
-                  aria-label="Increase"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
+            {isWeight ? (
+              <WeightChips
+                dish={dish}
+                chips={chips}
+                unit={unit}
+                selectedQty={line?.quantity}
+                currency={currency}
+              />
+            ) : line ? (
+              <div className="flex items-center gap-3">
+                <div className="inline-flex items-center bg-muted rounded-lg">
+                  <button
+                    className="h-8 w-8 flex items-center justify-center hover:bg-border rounded-l-lg"
+                    onClick={() => cart.set(dish.id, line.quantity - 1)}
+                    aria-label="Decrease"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <span className="px-3 text-sm font-semibold tabular-nums">{line.quantity}</span>
+                  <button
+                    className="h-8 w-8 flex items-center justify-center hover:bg-border rounded-r-lg"
+                    onClick={() => cart.set(dish.id, line.quantity + 1)}
+                    aria-label="Increase"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+                <span className="font-mono text-xs text-muted tabular-nums">
+                  = {formatMoney(lineTotalCents(dish.price_cents, line.quantity), currency)}
+                </span>
               </div>
             ) : (
               <Button size="sm" onClick={() => cart.add(dish)}>
@@ -175,5 +198,64 @@ function DishRow({ dish, currency }: { dish: Dish; currency: string }) {
         </div>
       </CardBody>
     </Card>
+  );
+}
+
+function WeightChips({
+  dish,
+  chips,
+  unit,
+  selectedQty,
+  currency,
+}: {
+  dish: Dish;
+  chips: number[];
+  unit: import("@/lib/types").PriceUnit;
+  selectedQty: number | undefined;
+  currency: string;
+}) {
+  const cart = useCart();
+  return (
+    <div>
+      <div className="font-mono text-[10px] tracking-[0.18em] uppercase text-muted mb-2">
+        Pick a weight
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {chips.map((qty) => {
+          const active = selectedQty === qty;
+          return (
+            <button
+              key={qty}
+              onClick={() => {
+                // Tapping the active chip removes it from the cart;
+                // otherwise sync the line to the new weight.
+                if (active) cart.set(dish.id, 0);
+                else if (selectedQty === undefined) {
+                  cart.add(dish);
+                  // After add(), the default quantity is set; immediately
+                  // sync it to whatever chip the user actually picked.
+                  cart.set(dish.id, qty);
+                } else {
+                  cart.set(dish.id, qty);
+                }
+              }}
+              className={cn(
+                "px-3 py-1.5 rounded-sm text-xs font-mono tabular-nums border transition-colors",
+                active
+                  ? "bg-fg text-bg border-fg"
+                  : "bg-card text-fg border-border hover:border-accent/60"
+              )}
+            >
+              {formatQty(qty, unit)}
+            </button>
+          );
+        })}
+      </div>
+      {selectedQty !== undefined && (
+        <div className="mt-2 font-mono text-xs text-muted tabular-nums">
+          {formatQty(selectedQty, unit)} = {formatMoney(lineTotalCents(dish.price_cents, selectedQty), currency)}
+        </div>
+      )}
+    </div>
   );
 }

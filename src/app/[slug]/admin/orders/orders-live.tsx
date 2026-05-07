@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ListOrdered } from "lucide-react";
 import { useClerkSupabaseClient } from "@/hooks/use-supabase";
 import { formatMoney, formatRelativeTime } from "@/lib/utils";
+import { formatQty } from "@/lib/weight";
 import type { Order, OrderItem, RestaurantTable } from "@/lib/types";
 
 interface Row extends Order {
@@ -86,7 +87,7 @@ export function OrdersLive({ restaurantId, currency }: Props) {
                 <ul className="space-y-1">
                   {o.items.map((i) => (
                     <li key={i.id} className="flex justify-between gap-2">
-                      <span>×{i.quantity} {i.dish_name}</span>
+                      <span>{formatQty(Number(i.quantity), i.unit ?? "each")} {i.dish_name}</span>
                       <span className="text-xs text-muted capitalize">{i.status}</span>
                     </li>
                   ))}

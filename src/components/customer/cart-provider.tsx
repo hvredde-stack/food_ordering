@@ -1,13 +1,21 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
-import type { Dish } from "@/lib/types";
+import type { Dish, PriceUnit } from "@/lib/types";
+import { defaultWeight, lineTotalCents } from "@/lib/weight";
 
+// CartLine carries the unit alongside quantity so weight-priced items
+// (1.5 lb fish pakora) and each-priced items (2 dosas) share a single
+// data shape. The line total is always price_cents * quantity, which is
+// correct for both because price_cents IS the per-unit price for weight
+// dishes and the per-item price for each dishes.
 export interface CartLine {
   dishId: string;
   name: string;
   price_cents: number;
+  /** Decimal for weight units, integer for "each". */
   quantity: number;
+  unit: PriceUnit;
   notes?: string;
 }
 
@@ -21,7 +29,11 @@ type Action =
   | { type: "clear" }
   | { type: "hydrate"; state: CartState };
 
-const STORAGE_KEY = "fo_cart_v1";
+// Bumped from v1 to v2 because the CartLine shape gained a `unit` field.
+// Old persisted carts will hydrate as v1, miss the field, and silently
+// recover by treating everything as "each" — but rather than ship that
+// risk we just expire the old key entirely.
+const STORAGE_KEY = "ts_cart_v2";
 
 function reducer(state: CartState, action: Action): CartState {
   switch (action.type) {
@@ -29,9 +41,15 @@ function reducer(state: CartState, action: Action): CartState {
       return action.state;
     case "add": {
       const existing = state.lines.find((l) => l.dishId === action.dish.id);
+      const unit = (action.dish.price_unit ?? "each") as PriceUnit;
+      const startingQty = unit === "each" ? 1 : defaultWeight(unit);
       const lines = existing
         ? state.lines.map((l) =>
-            l.dishId === action.dish.id ? { ...l, quantity: l.quantity + 1 } : l
+            l.dishId === action.dish.id
+              // For "each" we add 1 more on each tap. For weight dishes
+              // tapping Add again is a no-op — they pick a chip instead.
+              ? { ...l, quantity: unit === "each" ? l.quantity + 1 : l.quantity }
+              : l
           )
         : [
             ...state.lines,
@@ -39,7 +57,8 @@ function reducer(state: CartState, action: Action): CartState {
               dishId: action.dish.id,
               name: action.dish.name,
               price_cents: action.dish.price_cents,
-              quantity: 1,
+              quantity: startingQty,
+              unit,
             },
           ];
       return { lines };
@@ -70,6 +89,8 @@ function reducer(state: CartState, action: Action): CartState {
 interface CartContextValue {
   lines: CartLine[];
   totalCents: number;
+  /** Number of distinct lines (NOT sum of quantities — which would be
+   *  meaningless when mixing 2 dosas with 1.5 lb of pakora). */
   count: number;
   add: (dish: Dish) => void;
   set: (dishId: string, quantity: number) => void;
@@ -97,8 +118,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<CartContextValue>(
     () => ({
       lines: state.lines,
-      totalCents: state.lines.reduce((s, l) => s + l.price_cents * l.quantity, 0),
-      count: state.lines.reduce((s, l) => s + l.quantity, 0),
+      totalCents: state.lines.reduce(
+        (s, l) => s + lineTotalCents(l.price_cents, l.quantity),
+        0
+      ),
+      // Show "1 item" / "3 items" by line count — mixing eaches with lb
+      // makes a sum of quantities nonsensical.
+      count: state.lines.length,
       add: (dish) => dispatch({ type: "add", dish }),
       set: (dishId, quantity) => dispatch({ type: "set", dishId, quantity }),
       setNotes: (dishId, notes) => dispatch({ type: "notes", dishId, notes }),

@@ -5,12 +5,17 @@ import { json, badRequest, unauthorized, serverError, parseJson } from "@/lib/ap
 import { getActiveSession } from "@/lib/session";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
+const PRICE_UNITS = ["each", "lb", "kg", "oz", "g"] as const;
+
 const Body = z.object({
   items: z
     .array(
       z.object({
         dishId: z.string().uuid(),
-        quantity: z.number().int().positive().max(50),
+        // Decimal allowed for weight-priced dishes. Server validates the
+        // unit matches the dish's price_unit and rejects mismatches.
+        quantity: z.number().positive().max(1000),
+        unit: z.enum(PRICE_UNITS).optional(),
         notes: z.string().max(200).optional(),
       })
     )
@@ -30,17 +35,26 @@ export async function POST(req: Request) {
   const dishIds = [...new Set(parsed.data.items.map((i) => i.dishId))];
   const { data: dishes, error: dErr } = await supabase
     .from("dishes")
-    .select("id, name, price_cents, available, restaurant_id")
+    .select("id, name, price_cents, price_unit, available, restaurant_id")
     .in("id", dishIds);
   if (dErr) return serverError(dErr.message);
 
-  // All dishes must belong to this restaurant and be available.
+  // All dishes must belong to this restaurant and be available; the
+  // client-supplied unit (when present) must match the dish.
   const byId = new Map((dishes ?? []).map((d) => [d.id as string, d]));
-  for (const dishId of dishIds) {
-    const d = byId.get(dishId);
-    if (!d) return badRequest(`Dish ${dishId} not found`);
+  for (const item of parsed.data.items) {
+    const d = byId.get(item.dishId);
+    if (!d) return badRequest(`Dish ${item.dishId} not found`);
     if (d.restaurant_id !== session.restaurant_id) return badRequest("Dish not in this restaurant");
     if (!d.available) return badRequest(`Dish "${d.name}" is unavailable`);
+    const dishUnit = (d.price_unit as string | null) ?? "each";
+    if (item.unit && item.unit !== dishUnit) {
+      return badRequest(`Dish "${d.name}" is sold by ${dishUnit}, not ${item.unit}`);
+    }
+    // For "each" dishes, refuse fractional quantities — they don't make sense.
+    if (dishUnit === "each" && !Number.isInteger(item.quantity)) {
+      return badRequest(`Dish "${d.name}" can only be ordered in whole units`);
+    }
   }
 
   const { data: order, error: oErr } = await supabase
@@ -62,6 +76,8 @@ export async function POST(req: Request) {
 
   const itemRows = parsed.data.items.map((i) => {
     const d = byId.get(i.dishId)!;
+    const unit = ((d.price_unit as string | null) ?? "each") as
+      | "each" | "lb" | "kg" | "oz" | "g";
     return {
       order_id: order.id,
       restaurant_id: session.restaurant_id,
@@ -69,6 +85,7 @@ export async function POST(req: Request) {
       dish_name: d.name as string,
       unit_price_cents: d.price_cents as number,
       quantity: i.quantity,
+      unit,
       notes: i.notes ?? null,
       status: "pending" as const,
       // Per-person attribution (snapshot from session at order time).

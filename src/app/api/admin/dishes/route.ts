@@ -26,10 +26,14 @@ export async function GET() {
   return json({ dishes: dishes ?? [], categories: categories ?? [] });
 }
 
+const PRICE_UNITS = ["each", "lb", "kg", "oz", "g"] as const;
+
 const PostBody = z.object({
   name: z.string().min(1).max(120),
   description: z.string().max(500).optional(),
   price_cents: z.number().int().nonnegative(),
+  // Optional — defaults to "each" at the DB level.
+  price_unit: z.enum(PRICE_UNITS).optional(),
   image_url: z.string().url().optional().nullable(),
   category_id: z.string().uuid().optional().nullable(),
   available: z.boolean().optional(),

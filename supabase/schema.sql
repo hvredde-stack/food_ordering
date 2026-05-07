@@ -91,6 +91,9 @@ create table if not exists dishes (
   name          text not null,
   description   text,
   price_cents   int not null check (price_cents >= 0),
+  -- 'each' is the default; weight-priced dishes use lb/kg/oz/g and the
+  -- customer picks a fractional quantity at checkout.
+  price_unit    text not null default 'each' check (price_unit in ('each', 'lb', 'kg', 'oz', 'g')),
   image_url     text,
   available     boolean not null default true,
   position      int not null default 0,
@@ -181,7 +184,10 @@ create table if not exists order_items (
   -- Snapshot fields so analytics survive dish edits.
   dish_name     text not null,
   unit_price_cents int not null check (unit_price_cents >= 0),
-  quantity      int not null default 1 check (quantity > 0),
+  -- Weight-priced dishes (e.g. "1.5 lb fish pakora") need fractional qty.
+  quantity      numeric(10,3) not null default 1 check (quantity > 0),
+  -- Snapshot of dish.price_unit at order time.
+  unit          text not null default 'each' check (unit in ('each', 'lb', 'kg', 'oz', 'g')),
   status        item_status not null default 'pending',
   notes         text,
   -- Per-item attribution: which person at the table/takeout group ordered this.
@@ -256,7 +262,10 @@ declare
   v_total_count int;
   v_new_status order_status;
 begin
-  select coalesce(sum(unit_price_cents * quantity), 0) into v_total
+  -- Explicit round() because quantity is numeric(10,3) for weight-priced
+  -- dishes; coercing the product directly to int relies on PG behaviour
+  -- that we'd rather not depend on.
+  select coalesce(round(sum(unit_price_cents * quantity)), 0)::int into v_total
     from order_items where order_id = v_order_id and status <> 'cancelled';
 
   select
