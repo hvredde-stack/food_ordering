@@ -6,6 +6,7 @@ import { Plus, Minus, ShoppingBag } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Card, CardBody } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { DishImage } from "@/components/ui/dish-image";
 import { useCart } from "@/components/customer/cart-provider";
 import { formatMoney, cn } from "@/lib/utils";
 import type { Dish, MenuCategory, OrderType, Restaurant, RestaurantTable } from "@/lib/types";
@@ -135,14 +136,7 @@ function DishRow({ dish, currency }: { dish: Dish; currency: string }) {
   return (
     <Card>
       <CardBody className="flex gap-4 items-start p-5">
-        {dish.image_url && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={dish.image_url}
-            alt={dish.name}
-            className="w-24 h-24 rounded-md object-cover bg-bg-alt"
-          />
-        )}
+        <DishImage name={dish.name} imageUrl={dish.image_url} size={96} />
         <div className="flex-1 min-w-0">
           <div className="flex justify-between gap-4 items-baseline">
             <h3 className="font-display text-xl tracking-tight truncate">{dish.name}</h3>

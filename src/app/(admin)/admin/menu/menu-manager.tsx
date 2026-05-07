@@ -5,6 +5,7 @@ import { Plus, Trash2, Pencil, Upload } from "lucide-react";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
+import { DishImage } from "@/components/ui/dish-image";
 import { getSupabaseBrowser } from "@/lib/supabase/client";
 import { formatMoney } from "@/lib/utils";
 import type { Dish, MenuCategory } from "@/lib/types";
@@ -98,12 +99,7 @@ export function MenuManager({ currency, initialDishes, initialCategories }: Prop
         <div className="divide-y divide-border">
           {dishes.map((d) => (
             <div key={d.id} className="p-4 flex items-start gap-3">
-              {d.image_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={d.image_url} alt={d.name} className="w-16 h-16 rounded-md object-cover" />
-              ) : (
-                <div className="w-16 h-16 rounded-md bg-muted" />
-              )}
+              <DishImage name={d.name} imageUrl={d.image_url} size={64} />
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between gap-3">
                   <div className="font-medium">{d.name}</div>
@@ -272,12 +268,7 @@ function DishEditor({
           <div>
             <span className="text-xs text-muted">Image</span>
             <div className="mt-1 flex gap-2 items-center">
-              {imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={imageUrl} alt="" className="w-16 h-16 rounded-md object-cover" />
-              ) : (
-                <div className="w-16 h-16 rounded-md bg-muted" />
-              )}
+              <DishImage name={name || "Dish"} imageUrl={imageUrl} size={64} />
               <label className="flex-1">
                 <div className="inline-flex">
                   <Button variant="secondary" size="sm" type="button" disabled={uploading}>
