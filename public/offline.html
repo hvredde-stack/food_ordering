@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#1A1410" />
+    <title>Offline — TapServe</title>
+    <style>
+      :root { color-scheme: dark; }
+      html, body {
+        margin: 0;
+        height: 100%;
+        background: #1A1410;
+        color: #F4E9D6;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        font-weight: 300;
+      }
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        text-align: center;
+        background-image:
+          radial-gradient(ellipse 80% 50% at 30% 0%, rgba(201, 167, 110, 0.06), transparent 60%),
+          radial-gradient(ellipse 60% 40% at 90% 80%, rgba(184, 138, 85, 0.05), transparent 60%);
+      }
+      .wrap { max-width: 380px; }
+      .eyebrow {
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: #A89580;
+      }
+      h1 {
+        font-family: Georgia, "Times New Roman", serif;
+        font-weight: 300;
+        font-size: clamp(40px, 8vw, 64px);
+        letter-spacing: -0.02em;
+        line-height: 1.05;
+        margin: 16px 0 20px;
+      }
+      h1 em {
+        font-style: italic;
+        color: #B48A55;
+      }
+      p {
+        color: #A89580;
+        line-height: 1.7;
+        font-size: 15px;
+        margin: 0 0 28px;
+      }
+      button {
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: #F4E9D6;
+        background: transparent;
+        border: 0;
+        border-bottom: 1px solid #F4E9D6;
+        padding: 0 0 4px;
+        cursor: pointer;
+        transition: color 0.35s, border-color 0.35s;
+      }
+      button:hover { color: #B48A55; border-color: #B48A55; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="eyebrow">No connection</div>
+      <h1>You're <em>offline.</em></h1>
+      <p>
+        Reconnect to keep ordering. The menu and your cart need a live
+        connection — we'll bring you back as soon as you're online.
+      </p>
+      <button onclick="location.reload()">Try again</button>
+    </div>
+  </body>
+</html>

@@ -33,10 +33,10 @@ for (const r of restaurants) {
 
 console.log(`\n[Live URLs to test]`);
 for (const r of restaurants) {
-  console.log(`  Admin:    https://food-ordering-iota-orcin.vercel.app/admin`);
-  console.log(`  Settings: https://food-ordering-iota-orcin.vercel.app/admin/settings`);
-  console.log(`  Kitchen:  https://food-ordering-iota-orcin.vercel.app/kitchen/${r.slug}`);
+  console.log(`  Admin:    https://tapserve.ca/admin`);
+  console.log(`  Settings: https://tapserve.ca/admin/settings`);
+  console.log(`  Kitchen:  https://tapserve.ca/kitchen/${r.slug}`);
   if (r.takeout_code) {
-    console.log(`  Takeout:  https://food-ordering-iota-orcin.vercel.app/to/${r.slug}/${r.takeout_code}`);
+    console.log(`  Takeout:  https://tapserve.ca/to/${r.slug}/${r.takeout_code}`);
   }
 }

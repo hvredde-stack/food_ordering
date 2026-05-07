@@ -1,5 +1,5 @@
 -- =============================================================
--- Food Ordering — multi-tenant SaaS schema
+-- TapServe — multi-tenant SaaS schema
 -- =============================================================
 -- Run this entire file in the Supabase SQL editor on a fresh
 -- project. It is idempotent (drops and recreates) — DO NOT run

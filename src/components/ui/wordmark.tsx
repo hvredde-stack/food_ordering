@@ -1,6 +1,6 @@
 // Editorial wordmark for app headers. Tenant-aware: shows the restaurant
 // name (large serif) on tenant pages, "Platform" on platform pages,
-// "Food Ordering" everywhere else.
+// "TapServe" everywhere else.
 
 import Link from "next/link";
 

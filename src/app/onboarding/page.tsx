@@ -31,7 +31,7 @@ export default async function OnboardingPage() {
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-border">
         <div className="max-w-[1400px] mx-auto px-[clamp(20px,5vw,60px)] h-[68px] flex items-center justify-between">
-          <div className="font-display text-lg tracking-tight">Food Ordering</div>
+          <div className="font-display text-lg tracking-tight">TapServe</div>
           <div className="font-mono text-[11px] tracking-[0.22em] uppercase text-muted">
             Step 1 of 1 · Restaurant setup
           </div>

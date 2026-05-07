@@ -33,14 +33,35 @@ body {
   position: relative;
   font-feature-settings: "ss01", "cv05", "cv11";
   /*
-   * Ambient candlelight — a barely-visible warm radial behind everything.
-   * Pinned to a fixed position so scrolling reveals it gradually like a
-   * lamp behind the page.
+   * Ambient candlelight is now rendered on body::before so it can breathe
+   * (opacity + scale oscillate slowly). See the candle-breathe block below.
    */
+}
+
+/*
+ * Animated candlelight layer. The radial gradients used to live on body's
+ * own background-image, but moving them here lets us animate opacity and
+ * scale to read as a flame breathing rather than a frozen gradient.
+ */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
   background-image:
-    radial-gradient(ellipse 80% 50% at 30% 0%, rgba(201, 167, 110, 0.06), transparent 60%),
-    radial-gradient(ellipse 60% 40% at 90% 80%, rgba(184, 138, 85, 0.05), transparent 60%);
-  background-attachment: fixed;
+    radial-gradient(ellipse 80% 50% at 30% 0%, rgba(201, 167, 110, 0.07), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 80%, rgba(184, 138, 85, 0.06), transparent 60%);
+  will-change: opacity, transform;
+}
+@media (prefers-reduced-motion: no-preference) {
+  body::before {
+    animation: candle-breathe 7s cubic-bezier(.45,.05,.55,.95) infinite;
+  }
+  @keyframes candle-breathe {
+    0%, 100% { opacity: 0.85; transform: scale(1); }
+    50%      { opacity: 1.05; transform: scale(1.025); }
+  }
 }
 
 h1, h2, h3, .font-display {
@@ -215,3 +236,130 @@ body > * { position: relative; z-index: 2; }
   border-radius: 6px;
 }
 ::-webkit-scrollbar-thumb:hover { background: rgb(var(--accent-2)); }
+
+/*
+ * Italic emphasis (e.g. "chaos.", "online tonight.") arrives from the left
+ * a beat after the parent text reveals — like a hand-drawn flourish landing
+ * after the printed type. Cascades along the existing reveal-N timeline.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal em,
+  .reveal-1 em, .reveal-2 em, .reveal-3 em, .reveal-4 em, .reveal-5 em {
+    display: inline-block;
+    opacity: 0;
+    transform: translateX(-14px);
+    animation: italic-arrive 1100ms cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  .reveal-1 em { animation-delay: 1100ms; }
+  .reveal-2 em { animation-delay: 1300ms; }
+  .reveal-3 em { animation-delay: 1500ms; }
+  .reveal-4 em { animation-delay: 1700ms; }
+  .reveal-5 em { animation-delay: 1900ms; }
+
+  /* For scroll-triggered headings: italic emerges shortly after the parent
+   * fades in. Backwards fill keeps the em hidden before it gets a chance. */
+  .observe em {
+    display: inline-block;
+    opacity: 0;
+    transform: translateX(-14px);
+    transition: opacity 1100ms cubic-bezier(.2,.8,.2,1) 500ms,
+                transform 1100ms cubic-bezier(.2,.8,.2,1) 500ms;
+  }
+  .observe.visible em {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  @keyframes italic-arrive {
+    to { opacity: 1; transform: translateX(0); }
+  }
+}
+
+/*
+ * Ken Burns — a slow cinematic drift used on hero photography. The 18s
+ * cycle is intentionally long so it never reads as a deliberate effect,
+ * just as if the still is alive.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .ken-burns {
+    animation: ken-burns 18s cubic-bezier(.45,.05,.55,.95) infinite alternate;
+    transform-origin: 60% 40%;
+  }
+  @keyframes ken-burns {
+    from { transform: scale(1) translate3d(0, 0, 0); }
+    to   { transform: scale(1.08) translate3d(-1.5%, -1%, 0); }
+  }
+}
+
+/*
+ * Image curtain — a brass shutter peels off as the photo enters view.
+ * Wrap any photo with class `.image-curtain` and let the IntersectionObserver
+ * add `.visible`. Works alongside or instead of the .observe shift.
+ */
+.image-curtain { position: relative; overflow: hidden; }
+.image-curtain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgb(var(--bg));
+  transform-origin: top;
+  transform: scaleY(1);
+  transition: transform 1400ms cubic-bezier(.7,0,.3,1);
+  pointer-events: none;
+  z-index: 2;
+}
+.image-curtain.visible::after { transform: scaleY(0); }
+
+/*
+ * A subtle warm vignette burned into hero photos so their edges blend into
+ * the walnut background instead of cutting hard. Pair with .image-vignette
+ * on the photo's wrapper.
+ */
+.image-vignette { position: relative; }
+.image-vignette::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at center, transparent 50%, rgba(26, 20, 16, 0.55) 100%),
+    linear-gradient(to bottom, transparent 70%, rgba(26, 20, 16, 0.4) 100%);
+  z-index: 3;
+}
+
+/*
+ * Cursor-light — a soft brass radial that lazily trails the mouse on
+ * desktop marketing pages. Mounted at body level by <CursorLight />; uses
+ * mix-blend-mode: screen so it brightens the underlying surface without
+ * obscuring text. Suppressed on touch and reduced-motion via JS.
+ */
+.cursor-light {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  opacity: 0;
+  transition: opacity 700ms cubic-bezier(.2,.8,.2,1);
+}
+.cursor-light[data-active="true"] { opacity: 1; }
+.cursor-light::before {
+  content: "";
+  position: absolute;
+  width: 720px;
+  height: 720px;
+  border-radius: 50%;
+  left: var(--cx, 50%);
+  top: var(--cy, 50%);
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(201, 167, 110, 0.18) 0%,
+    rgba(201, 167, 110, 0.05) 35%,
+    transparent 60%
+  );
+  mix-blend-mode: screen;
+  will-change: left, top;
+}
+@media (hover: none), (prefers-reduced-motion: reduce) {
+  .cursor-light { display: none; }
+}

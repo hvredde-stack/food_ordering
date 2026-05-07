@@ -18,7 +18,7 @@ export function getSupabaseAdmin(): SupabaseClient<any, any, any> {
   }
   cached = createClient(env.supabaseUrl, env.supabaseServiceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
-    global: { headers: { "x-application-name": "food-ordering-admin" } },
+    global: { headers: { "x-application-name": "tapserve-admin" } },
   });
   return cached;
 }

@@ -1,4 +1,4 @@
-# Food Ordering — multi-tenant SaaS restaurant platform
+# TapServe — multi-tenant SaaS restaurant platform
 
 Four interfaces in one Next.js 15 app:
 

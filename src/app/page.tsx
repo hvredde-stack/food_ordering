@@ -1,6 +1,8 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowUpRight, ScanLine, ChefHat, BarChart3, Utensils } from "lucide-react";
 import { ScrollRevealInit } from "@/components/scroll-reveal-init";
+import { CursorLight } from "@/components/cursor-light";
 
 // Public marketing landing. Where ads, social posts, and word-of-mouth land.
 // Calm, editorial, one clear CTA per section. Sign-up flow is the goal.
@@ -8,11 +10,12 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
       <ScrollRevealInit />
+      <CursorLight />
       {/* Thin nav, transparent on hero, hairline border. */}
       <header className="sticky top-0 z-30 backdrop-blur-md bg-bg/85 border-b border-border/70">
         <nav className="max-w-[1400px] mx-auto px-[clamp(20px,5vw,60px)] h-[68px] flex items-center justify-between">
           <Link href="/" className="font-display text-lg tracking-tight">
-            Food Ordering
+            TapServe
           </Link>
           <div className="flex items-center gap-8">
             <Link href="/admin/sign-in" className="nav-link hidden sm:inline-block">
@@ -62,28 +65,47 @@ export default function Home() {
 
             <aside className="reveal reveal-3">
               <div
-                className="bg-bg-alt border border-border rounded-sm w-full overflow-hidden"
+                className="image-vignette relative w-full overflow-hidden rounded-sm border border-border"
                 style={{ aspectRatio: "4 / 5" }}
               >
-                <div className="h-full flex flex-col justify-between p-8 md:p-12">
+                {/* A plated dish on a candlelit surface — sits on the warmer
+                    end of the palette so the brass type stays legible. */}
+                <Image
+                  src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=900&h=1125&fit=crop&q=85&auto=format"
+                  alt="A plated dish on a candlelit table"
+                  fill
+                  sizes="(max-width: 768px) 90vw, 540px"
+                  className="object-cover ken-burns"
+                  priority
+                />
+                {/* Scrim ensures eyebrow + display type read against any
+                    region of the photo. Lives above the vignette gradient. */}
+                <div
+                  className="absolute inset-0 flex flex-col justify-between p-8 md:p-12"
+                  style={{
+                    zIndex: 4,
+                    background:
+                      "linear-gradient(to bottom, rgba(26,20,16,0.55) 0%, rgba(26,20,16,0) 30%, rgba(26,20,16,0) 55%, rgba(26,20,16,0.7) 100%)",
+                  }}
+                >
                   <div className="flex justify-between items-start">
-                    <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">
+                    <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-fg/85">
                       Plate № 04
                     </div>
-                    <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">
+                    <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-fg/85">
                       In service
                     </div>
                   </div>
                   <div>
                     <div
-                      className="font-display italic font-light leading-[1.05] tracking-tight"
+                      className="font-display italic font-light leading-[1.05] tracking-tight text-fg"
                       style={{ fontSize: "clamp(32px, 4.5vw, 56px)" }}
                     >
                       Slow food,
                       <br />
                       faster tickets.
                     </div>
-                    <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted mt-6 leading-relaxed">
+                    <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-fg/75 mt-6 leading-relaxed">
                       Real-time kitchen queue · table or takeout · per-person attribution
                     </div>
                   </div>
@@ -113,17 +135,58 @@ export default function Home() {
                 no="01"
                 title="Register your restaurant"
                 desc="Sign up with your email. Tell us your restaurant's name and how many tables you have. We auto-generate everything else — slug, takeout code, table QR codes."
+                src="https://images.unsplash.com/photo-1551218808-94e220e084d2?w=900&h=675&fit=crop&q=85&auto=format"
+                alt="A pair of hands working in a warm, low-lit kitchen"
               />
               <Step
                 no="02"
                 title="Add your menu"
                 desc="Categories, dishes, prices, descriptions, photos. Edit anytime. Customers see updates instantly. We even pre-fill iconography for famous dishes."
+                src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=900&h=675&fit=crop&q=85&auto=format"
+                alt="A composed dish photographed on a dark surface"
               />
               <Step
                 no="03"
                 title="Print your QR codes & open"
                 desc="Each table gets its own QR code. There's a master QR for takeout. Customers scan, order, pay at the table. Kitchen sees the ticket within a second."
+                src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=900&h=675&fit=crop&q=85&auto=format"
+                alt="An overhead view of a beautifully plated table setting"
               />
+            </div>
+          </div>
+        </section>
+
+        {/* Editorial photo bleed — a wide interior shot that resets the
+            page emotionally between explainers and feature grid. The brass
+            curtain peels off as the section enters view. */}
+        <section className="observe border-t border-border overflow-hidden">
+          <div
+            className="image-curtain image-vignette relative w-full"
+            style={{ aspectRatio: "21 / 9" }}
+          >
+            <Image
+              src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=2400&h=1029&fit=crop&q=85&auto=format"
+              alt="A dim, candlelit dining room"
+              fill
+              sizes="100vw"
+              className="object-cover ken-burns"
+            />
+            <div
+              className="absolute inset-0 flex items-end pointer-events-none"
+              style={{ zIndex: 5 }}
+            >
+              <div className="max-w-[1400px] mx-auto px-[clamp(20px,5vw,60px)] py-12 md:py-20 w-full">
+                <div className="font-mono text-[11px] tracking-[0.22em] uppercase text-fg/80">
+                  The room you don't have to staff
+                </div>
+                <div
+                  className="font-display italic font-light leading-[1.05] tracking-tight mt-4 text-fg"
+                  style={{ fontSize: "clamp(28px, 4vw, 56px)" }}
+                >
+                  Quiet floors.<br />
+                  Loud <em className="not-italic font-normal text-accent">kitchens.</em>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -174,9 +237,31 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Closing CTA */}
-        <section className="border-t border-border bg-bg-warm">
-          <div className="max-w-[1400px] mx-auto px-[clamp(20px,5vw,60px)] py-24 md:py-32 text-center observe">
+        {/* Closing CTA — full-bleed dim restaurant photo behind, with a
+            heavy walnut wash so the type and CTA stay editorial. The photo
+            drifts via ken burns; the wash is what keeps the contrast. */}
+        <section className="relative border-t border-border overflow-hidden">
+          <div className="absolute inset-0" style={{ zIndex: 0 }}>
+            <Image
+              src="https://images.unsplash.com/photo-1497644083578-611b798c60f3?w=2400&h=1200&fit=crop&q=85&auto=format"
+              alt=""
+              fill
+              sizes="100vw"
+              className="object-cover ken-burns"
+              aria-hidden
+            />
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(to bottom, rgba(26,20,16,0.92) 0%, rgba(26,20,16,0.85) 50%, rgba(26,20,16,0.95) 100%)",
+              }}
+            />
+          </div>
+          <div
+            className="relative max-w-[1400px] mx-auto px-[clamp(20px,5vw,60px)] py-24 md:py-32 text-center observe"
+            style={{ zIndex: 1 }}
+          >
             <div className="font-mono text-[11px] tracking-[0.22em] uppercase text-muted">
               Ready when you are
             </div>
@@ -204,7 +289,7 @@ export default function Home() {
         <div className="max-w-[1400px] mx-auto px-[clamp(20px,5vw,60px)] py-16">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
             <div>
-              <div className="font-display text-lg tracking-tight">Food Ordering</div>
+              <div className="font-display text-lg tracking-tight">TapServe</div>
               <p className="text-sm text-muted mt-3 leading-relaxed max-w-[220px]">
                 A quietly built ordering platform for considered restaurants.
               </p>
@@ -239,11 +324,27 @@ export default function Home() {
   );
 }
 
-function Step({ no, title, desc }: { no: string; title: string; desc: string }) {
+function Step({
+  no, title, desc, src, alt,
+}: {
+  no: string; title: string; desc: string; src: string; alt: string;
+}) {
   return (
     <div>
-      <div className="font-mono text-[11px] tracking-[0.22em] uppercase text-muted">{no}</div>
-      <h3 className="font-display text-3xl tracking-tight mt-4 leading-tight">{title}</h3>
+      <div
+        className="image-vignette relative w-full overflow-hidden rounded-sm border border-border"
+        style={{ aspectRatio: "4 / 3" }}
+      >
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          sizes="(max-width: 768px) 90vw, 33vw"
+          className="object-cover ken-burns"
+        />
+      </div>
+      <div className="font-mono text-[11px] tracking-[0.22em] uppercase text-muted mt-6">{no}</div>
+      <h3 className="font-display text-3xl tracking-tight mt-3 leading-tight">{title}</h3>
       <p className="text-muted mt-4 leading-[1.7] text-[15px]">{desc}</p>
     </div>
   );
