@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     .from("restaurant_tables")
     .select("id")
     .eq("restaurant_id", restaurant.id)
-    .eq("code", parsed.data.tableCode)
+    .ilike("code", parsed.data.tableCode)
     .maybeSingle();
   if (tErr) return serverError(tErr.message);
   if (!table) return notFound("Table not found");

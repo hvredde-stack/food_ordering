@@ -80,13 +80,15 @@ create index if not exists dishes_cat_idx on dishes(category_id, position);
 create table if not exists restaurant_tables (
   id            uuid primary key default gen_random_uuid(),
   restaurant_id uuid not null references restaurants(id) on delete cascade,
-  -- Server-friendly label, e.g. "T-12". Unique within a restaurant.
+  -- Server-friendly label, e.g. "T-12". Unique within a restaurant,
+  -- case-insensitive (so "T20" and "t20" can't both exist).
   code          text not null,
   label         text,
   seats         int  not null default 2,
-  created_at    timestamptz not null default now(),
-  unique (restaurant_id, code)
+  created_at    timestamptz not null default now()
 );
+create unique index if not exists restaurant_tables_rest_code_ci_idx
+  on restaurant_tables (restaurant_id, lower(code));
 create index if not exists tables_rest_idx on restaurant_tables(restaurant_id);
 
 -- ---------------------------------------------------------------

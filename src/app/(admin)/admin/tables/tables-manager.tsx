@@ -60,8 +60,11 @@ export function TablesManager({
   }
 
   function tableUrl(t: RestaurantTable) {
-    if (typeof window === "undefined") return `/t/${restaurantSlug}/${t.code}`;
-    return `${window.location.origin}/t/${restaurantSlug}/${t.code}`;
+    // Encode the code so any characters (symbols, spaces, mixed case)
+    // round-trip safely through the URL path.
+    const code = encodeURIComponent(t.code);
+    if (typeof window === "undefined") return `/t/${restaurantSlug}/${code}`;
+    return `${window.location.origin}/t/${restaurantSlug}/${code}`;
   }
 
   function qrSrc(t: RestaurantTable) {

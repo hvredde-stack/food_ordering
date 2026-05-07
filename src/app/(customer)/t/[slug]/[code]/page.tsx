@@ -23,7 +23,7 @@ export default async function TablePage({ params }: { params: Promise<Params> })
     .from("restaurant_tables")
     .select("id, code, label, seats")
     .eq("restaurant_id", restaurant.id)
-    .eq("code", code)
+    .ilike("code", code)
     .maybeSingle();
   if (!table) notFound();
 
