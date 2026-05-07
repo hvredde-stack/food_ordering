@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardBody } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useCart } from "@/components/customer/cart-provider";
 
 export function TakeoutConfirm({
   restaurantSlug,
@@ -14,6 +15,7 @@ export function TakeoutConfirm({
   takeoutCode: string;
 }) {
   const router = useRouter();
+  const cart = useCart();
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -41,6 +43,10 @@ export function TakeoutConfirm({
         setErr(j.error ?? "Could not start session");
         return;
       }
+      // Fresh session = fresh cart. Prevents items from a previous
+      // dine-in or takeout scan in the same browser from leaking into
+      // this order.
+      cart.clear();
       router.push("/menu");
     } catch {
       setErr("Network error");
