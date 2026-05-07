@@ -8,16 +8,17 @@ import { Card, CardBody } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/components/customer/cart-provider";
 import { formatMoney, cn } from "@/lib/utils";
-import type { Dish, MenuCategory, Restaurant, RestaurantTable } from "@/lib/types";
+import type { Dish, MenuCategory, OrderType, Restaurant, RestaurantTable } from "@/lib/types";
 
 interface Props {
   restaurant: Restaurant;
-  table: RestaurantTable;
+  table: RestaurantTable | null;
+  orderType: OrderType;
   categories: MenuCategory[];
   dishes: Dish[];
 }
 
-export function MenuView({ restaurant, table, categories, dishes }: Props) {
+export function MenuView({ restaurant, table, orderType, categories, dishes }: Props) {
   const cart = useCart();
   const router = useRouter();
   const [activeCategory, setActiveCategory] = useState<string | null>(
@@ -40,7 +41,9 @@ export function MenuView({ restaurant, table, categories, dishes }: Props) {
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <div>
             <div className="text-sm font-semibold">{restaurant.name}</div>
-            <div className="text-xs text-muted">Table {table.code}</div>
+            <div className="text-xs text-muted">
+              {orderType === "takeout" ? "Takeout" : table ? `Table ${table.code}` : ""}
+            </div>
           </div>
           <Link href="/cart">
             <Button variant="secondary" className="relative">
