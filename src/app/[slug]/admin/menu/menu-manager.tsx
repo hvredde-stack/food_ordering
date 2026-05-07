@@ -38,7 +38,10 @@ export function MenuManager({ currency, initialDishes, initialCategories }: Prop
 
   async function addCategory() {
     const name = newCategory.trim();
-    if (!name) return;
+    if (!name) {
+      setErrCat("Type a category name first.");
+      return;
+    }
     setBusyCat(true);
     setErrCat(null);
     try {
@@ -55,7 +58,7 @@ export function MenuManager({ currency, initialDishes, initialCategories }: Prop
       setNewCategory("");
       await reload();
     } catch (e) {
-      setErrCat((e as Error).message);
+      setErrCat((e as Error)?.message ?? "Network error");
     } finally {
       setBusyCat(false);
     }
@@ -121,7 +124,7 @@ export function MenuManager({ currency, initialDishes, initialCategories }: Prop
               }}
               disabled={busyCat}
             />
-            <Button onClick={addCategory} disabled={busyCat || !newCategory.trim()}>
+            <Button type="button" onClick={addCategory} disabled={busyCat}>
               <Plus className="w-4 h-4" />
               <span className="font-mono text-[11px] tracking-[0.14em] uppercase">{busyCat ? "Adding…" : "Add"}</span>
             </Button>
@@ -320,6 +323,10 @@ function DishEditor({
   const [creatingCategory, setCreatingCategory] = useState(false);
   const [newCatName, setNewCatName] = useState("");
   const [busyCat, setBusyCat] = useState(false);
+  // Dedicated error state so the inline form surfaces failures right
+  // next to itself instead of pushing them to the bottom-of-modal `err`
+  // (which the user wouldn't see while focused on the new-category UI).
+  const [errCat, setErrCat] = useState<string | null>(null);
 
   async function handleUpload(file: File) {
     setUploading(true);
@@ -347,8 +354,12 @@ function DishEditor({
 
   async function createInlineCategory() {
     const name = newCatName.trim();
-    if (!name) return;
+    if (!name) {
+      setErrCat("Type a category name first.");
+      return;
+    }
     setBusyCat(true);
+    setErrCat(null);
     try {
       const res = await fetch("/api/admin/categories", {
         method: "POST",
@@ -357,7 +368,7 @@ function DishEditor({
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        setErr(j.error ?? "Failed to create category");
+        setErrCat(j.error ?? `Failed (${res.status})`);
         return;
       }
       const j = await res.json();
@@ -365,6 +376,9 @@ function DishEditor({
       setCategoryId(j.category.id);
       setNewCatName("");
       setCreatingCategory(false);
+    } catch (e) {
+      // fetch() rejected — usually a network/offline issue. Surface it.
+      setErrCat((e as Error)?.message ?? "Network error");
     } finally {
       setBusyCat(false);
     }
@@ -489,28 +503,49 @@ function DishEditor({
           </label>
 
           {creatingCategory && (
-            <div className="flex gap-2 p-3 rounded-lg bg-bg-alt border border-border">
-              <Input
-                placeholder="Category name"
-                value={newCatName}
-                onChange={(e) => setNewCatName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    createInlineCategory();
-                  }
-                }}
-                autoFocus
-              />
-              <Button onClick={createInlineCategory} disabled={busyCat || !newCatName.trim()}>
-                {busyCat ? "Adding…" : "Add"}
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => { setCreatingCategory(false); setNewCatName(""); }}
-              >
-                Cancel
-              </Button>
+            <div className="rounded-lg bg-bg-alt border border-border p-3 space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Category name"
+                  value={newCatName}
+                  onChange={(e) => {
+                    setNewCatName(e.target.value);
+                    if (errCat) setErrCat(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      createInlineCategory();
+                    }
+                  }}
+                  autoFocus
+                />
+                <Button
+                  type="button"
+                  onClick={createInlineCategory}
+                  disabled={busyCat}
+                >
+                  {busyCat ? "Adding…" : "Add"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setCreatingCategory(false);
+                    setNewCatName("");
+                    setErrCat(null);
+                    // Reset the parent select if the user was on "__new__".
+                    if (categoryId === "" || !categoryId) setCategoryId("");
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+              {errCat && (
+                <div className="text-xs text-red-500 font-mono tracking-wide">
+                  Couldn't add: {errCat}
+                </div>
+              )}
             </div>
           )}
 
@@ -554,8 +589,8 @@ function DishEditor({
           {err && <div className="text-sm text-red-600">{err}</div>}
         </CardBody>
         <div className="flex gap-2 p-4 border-t border-border">
-          <Button variant="secondary" onClick={onClose} className="flex-1">Cancel</Button>
-          <Button onClick={save} disabled={busy} className="flex-1">
+          <Button type="button" variant="secondary" onClick={onClose} className="flex-1">Cancel</Button>
+          <Button type="button" onClick={save} disabled={busy} className="flex-1">
             {busy ? "Saving…" : "Save"}
           </Button>
         </div>
