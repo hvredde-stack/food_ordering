@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Plus, Trash2, Pencil, Upload } from "lucide-react";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,8 @@ export function MenuManager({ currency, initialDishes, initialCategories }: Prop
   const [categories, setCategories] = useState(initialCategories);
   const [editing, setEditing] = useState<Partial<Dish> | null>(null);
   const [newCategory, setNewCategory] = useState("");
+  const [busyCat, setBusyCat] = useState(false);
+  const [errCat, setErrCat] = useState<string | null>(null);
 
   async function reload() {
     const res = await fetch("/api/admin/dishes", { cache: "no-store" });
@@ -32,14 +34,28 @@ export function MenuManager({ currency, initialDishes, initialCategories }: Prop
   }
 
   async function addCategory() {
-    if (!newCategory.trim()) return;
-    await fetch("/api/admin/categories", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ name: newCategory.trim(), position: categories.length }),
-    });
-    setNewCategory("");
-    await reload();
+    const name = newCategory.trim();
+    if (!name) return;
+    setBusyCat(true);
+    setErrCat(null);
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ name, position: categories.length }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setErrCat(j.error ?? `Failed (${res.status})`);
+        return;
+      }
+      setNewCategory("");
+      await reload();
+    } catch (e) {
+      setErrCat((e as Error).message);
+    } finally {
+      setBusyCat(false);
+    }
   }
 
   async function deleteCategory(id: string) {
@@ -54,79 +70,133 @@ export function MenuManager({ currency, initialDishes, initialCategories }: Prop
     await reload();
   }
 
+  // Group dishes by category for the visual list. "Uncategorized" bucket
+  // appears only if there are dishes without a category.
+  const grouped = useMemo(() => {
+    const m = new Map<string, Dish[]>();
+    for (const d of dishes) {
+      const key = d.category_id ?? "__none__";
+      const arr = m.get(key) ?? [];
+      arr.push(d);
+      m.set(key, arr);
+    }
+    return m;
+  }, [dishes]);
+
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-6">
+    <div className="max-w-5xl mx-auto p-8 space-y-8">
       <div className="flex items-end justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold">Menu</h1>
-          <p className="text-sm text-muted">Categories, dishes, prices & images.</p>
+          <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">Menu</div>
+          <h1 className="font-display text-4xl md:text-5xl tracking-tight mt-3">Categories &amp; dishes</h1>
         </div>
         <Button onClick={() => setEditing({ name: "", price_cents: 0, available: true })}>
-          <Plus className="w-4 h-4" /> New dish
+          <Plus className="w-4 h-4" />
+          <span className="font-mono text-[11px] tracking-[0.14em] uppercase">New dish</span>
         </Button>
       </div>
 
       <Card>
-        <CardHeader><div className="font-semibold">Categories</div></CardHeader>
+        <CardHeader>
+          <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">Categories</div>
+          <div className="text-xs text-muted mt-2">
+            Tip: add a category first (e.g. <em>Starters</em>, <em>Mains</em>, <em>Drinks</em>), then assign dishes to it when you create or edit them.
+          </div>
+        </CardHeader>
         <CardBody className="space-y-3">
           <div className="flex gap-2">
             <Input
-              placeholder="New category name"
+              placeholder="New category name (e.g. Starters)"
               value={newCategory}
               onChange={(e) => setNewCategory(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addCategory();
+                }
+              }}
+              disabled={busyCat}
             />
-            <Button onClick={addCategory}><Plus className="w-4 h-4" /> Add</Button>
+            <Button onClick={addCategory} disabled={busyCat || !newCategory.trim()}>
+              <Plus className="w-4 h-4" />
+              <span className="font-mono text-[11px] tracking-[0.14em] uppercase">{busyCat ? "Adding…" : "Add"}</span>
+            </Button>
           </div>
+          {errCat && <div className="text-sm text-red-600">Couldn't add category: {errCat}</div>}
           <div className="flex flex-wrap gap-2">
             {categories.map((c) => (
               <span
                 key={c.id}
-                className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-sm"
+                className="inline-flex items-center gap-2 rounded-full bg-bg-alt border border-border px-3 py-1 text-sm"
               >
                 {c.name}
-                <button onClick={() => deleteCategory(c.id)} className="text-muted hover:text-red-600">
+                <button
+                  onClick={() => deleteCategory(c.id)}
+                  className="text-muted hover:text-red-600 transition-colors"
+                  aria-label={`Delete ${c.name}`}
+                >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </span>
             ))}
-            {categories.length === 0 && <div className="text-sm text-muted">No categories yet.</div>}
+            {categories.length === 0 && (
+              <div className="text-sm text-muted italic">No categories yet — add one above.</div>
+            )}
           </div>
         </CardBody>
       </Card>
 
-      <Card>
-        <CardHeader><div className="font-semibold">Dishes</div></CardHeader>
-        <div className="divide-y divide-border">
-          {dishes.map((d) => (
-            <div key={d.id} className="p-4 flex items-start gap-3">
-              <DishImage name={d.name} imageUrl={d.image_url} size={64} />
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between gap-3">
-                  <div className="font-medium">{d.name}</div>
-                  <div className="font-semibold">{formatMoney(d.price_cents, currency)}</div>
+      {/* Dishes — now grouped under their category, with one "Uncategorized" bucket. */}
+      {dishes.length === 0 ? (
+        <Card>
+          <CardBody className="text-center py-12 text-muted">
+            No dishes yet — add one to get started.
+          </CardBody>
+        </Card>
+      ) : (
+        <div className="space-y-6">
+          {categories.map((c) => {
+            const items = grouped.get(c.id) ?? [];
+            if (items.length === 0) return (
+              <CategoryGroup key={c.id} title={c.name} count={0}>
+                <div className="p-4 text-sm text-muted italic">
+                  No dishes in this category yet.
                 </div>
-                <div className="text-xs text-muted">
-                  {categories.find((c) => c.id === d.category_id)?.name ?? "Uncategorized"}
-                  {" · "}
-                  {d.available ? "Available" : "Hidden"}
-                </div>
-                {d.description && <p className="text-sm text-muted mt-1 line-clamp-2">{d.description}</p>}
-              </div>
-              <div className="flex gap-1">
-                <Button variant="ghost" size="sm" onClick={() => setEditing(d)}>
-                  <Pencil className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => deleteDish(d.id)}>
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          ))}
-          {dishes.length === 0 && (
-            <div className="p-8 text-center text-muted">No dishes yet — add one to get started.</div>
+              </CategoryGroup>
+            );
+            return (
+              <CategoryGroup key={c.id} title={c.name} count={items.length}>
+                {items.map((d) => (
+                  <DishRow
+                    key={d.id}
+                    dish={d}
+                    currency={currency}
+                    onEdit={() => setEditing(d)}
+                    onDelete={() => deleteDish(d.id)}
+                  />
+                ))}
+              </CategoryGroup>
+            );
+          })}
+          {(grouped.get("__none__")?.length ?? 0) > 0 && (
+            <CategoryGroup
+              title="Uncategorized"
+              count={grouped.get("__none__")!.length}
+              caption="Edit each dish to assign a category."
+            >
+              {grouped.get("__none__")!.map((d) => (
+                <DishRow
+                  key={d.id}
+                  dish={d}
+                  currency={currency}
+                  onEdit={() => setEditing(d)}
+                  onDelete={() => deleteDish(d.id)}
+                />
+              ))}
+            </CategoryGroup>
           )}
         </div>
-      </Card>
+      )}
 
       {editing !== null && (
         <DishEditor
@@ -135,8 +205,76 @@ export function MenuManager({ currency, initialDishes, initialCategories }: Prop
           currency={currency}
           onClose={() => setEditing(null)}
           onSaved={reload}
+          onCategoryCreated={(c) => setCategories((cs) => [...cs, c])}
         />
       )}
+    </div>
+  );
+}
+
+function CategoryGroup({
+  title,
+  count,
+  caption,
+  children,
+}: {
+  title: string;
+  count: number;
+  caption?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Card>
+      <CardHeader className="flex justify-between items-baseline">
+        <div>
+          <div className="font-display text-2xl tracking-tight">{title}</div>
+          {caption && <div className="text-xs text-muted mt-1">{caption}</div>}
+        </div>
+        <div className="font-mono text-[11px] tracking-[0.18em] uppercase text-muted">
+          {count} {count === 1 ? "dish" : "dishes"}
+        </div>
+      </CardHeader>
+      <div className="divide-y divide-border">{children}</div>
+    </Card>
+  );
+}
+
+function DishRow({
+  dish,
+  currency,
+  onEdit,
+  onDelete,
+}: {
+  dish: Dish;
+  currency: string;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div className="p-4 flex items-start gap-4">
+      <DishImage name={dish.name} imageUrl={dish.image_url} size={64} />
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-between gap-3 items-baseline">
+          <div className="font-display text-lg tracking-tight truncate">{dish.name}</div>
+          <div className="font-mono text-sm tabular-nums whitespace-nowrap">
+            {formatMoney(dish.price_cents, currency)}
+          </div>
+        </div>
+        <div className="text-xs text-muted font-mono tracking-wide mt-1">
+          {dish.available ? "Available" : "Hidden"}
+        </div>
+        {dish.description && (
+          <p className="text-sm text-muted mt-2 leading-relaxed line-clamp-2">{dish.description}</p>
+        )}
+      </div>
+      <div className="flex gap-1 shrink-0">
+        <Button variant="ghost" size="sm" onClick={onEdit} aria-label="Edit">
+          <Pencil className="w-4 h-4" />
+        </Button>
+        <Button variant="ghost" size="sm" onClick={onDelete} aria-label="Delete">
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      </div>
     </div>
   );
 }
@@ -147,12 +285,14 @@ function DishEditor({
   currency,
   onClose,
   onSaved,
+  onCategoryCreated,
 }: {
   dish: Partial<Dish>;
   categories: MenuCategory[];
   currency: string;
   onClose: () => void;
   onSaved: () => void;
+  onCategoryCreated: (c: MenuCategory) => void;
 }) {
   const [name, setName] = useState(dish.name ?? "");
   const [description, setDescription] = useState(dish.description ?? "");
@@ -163,6 +303,11 @@ function DishEditor({
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  // Inline category creation from inside the dish editor.
+  const [creatingCategory, setCreatingCategory] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+  const [busyCat, setBusyCat] = useState(false);
 
   async function handleUpload(file: File) {
     setUploading(true);
@@ -185,6 +330,31 @@ function DishEditor({
       setErr((e as Error).message);
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function createInlineCategory() {
+    const name = newCatName.trim();
+    if (!name) return;
+    setBusyCat(true);
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ name, position: categories.length }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setErr(j.error ?? "Failed to create category");
+        return;
+      }
+      const j = await res.json();
+      onCategoryCreated(j.category as MenuCategory);
+      setCategoryId(j.category.id);
+      setNewCatName("");
+      setCreatingCategory(false);
+    } finally {
+      setBusyCat(false);
     }
   }
 
@@ -227,8 +397,11 @@ function DishEditor({
     <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center p-4">
       <Card className="w-full max-w-lg">
         <CardHeader className="flex justify-between items-center">
-          <div className="font-semibold">{dish.id ? "Edit dish" : "New dish"}</div>
-          <button onClick={onClose} className="text-muted hover:text-fg">×</button>
+          <div>
+            <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">{dish.id ? "Edit" : "New"}</div>
+            <div className="font-display text-xl mt-1 tracking-tight">{dish.id ? "Edit dish" : "New dish"}</div>
+          </div>
+          <button onClick={onClose} className="text-muted hover:text-fg text-2xl leading-none" aria-label="Close">×</button>
         </CardHeader>
         <CardBody className="space-y-3">
           <Input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
@@ -243,22 +416,55 @@ function DishEditor({
                 onChange={(e) => setPriceCents(Number(e.target.value))}
                 className="mt-1"
               />
-              <span className="text-xs text-muted">= {formatMoney(priceCents, currency)}</span>
+              <span className="text-xs text-muted font-mono">= {formatMoney(priceCents, currency)}</span>
             </label>
             <label className="block">
               <span className="text-xs text-muted">Category</span>
               <select
                 value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
+                onChange={(e) => {
+                  if (e.target.value === "__new__") {
+                    setCreatingCategory(true);
+                  } else {
+                    setCategoryId(e.target.value);
+                  }
+                }}
                 className="mt-1 h-10 w-full rounded-lg border border-border bg-card px-3 text-sm"
               >
                 <option value="">Uncategorized</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
+                <option value="__new__">+ Create new category…</option>
               </select>
             </label>
           </div>
+
+          {creatingCategory && (
+            <div className="flex gap-2 p-3 rounded-lg bg-bg-alt border border-border">
+              <Input
+                placeholder="Category name"
+                value={newCatName}
+                onChange={(e) => setNewCatName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    createInlineCategory();
+                  }
+                }}
+                autoFocus
+              />
+              <Button onClick={createInlineCategory} disabled={busyCat || !newCatName.trim()}>
+                {busyCat ? "Adding…" : "Add"}
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => { setCreatingCategory(false); setNewCatName(""); }}
+              >
+                Cancel
+              </Button>
+            </div>
+          )}
 
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={available} onChange={(e) => setAvailable(e.target.checked)} />

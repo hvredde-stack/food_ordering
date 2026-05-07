@@ -3,44 +3,37 @@
 @tailwind utilities;
 
 /*
- * Luxury editorial palette.
- * Every neutral has warmth — never pure white, never pure black.
- * The 2–6% offset from absolute is what stops it reading as templated.
+ * "Linen" palette — soft camel, warm cream, warm brown ink.
+ * Seven values total. The only "color" moments come from product
+ * photography itself.
  */
 :root {
-  /* Background tiers */
-  --bg:           245 239 230;   /* #F5EFE6 — warm cream */
-  --bg-alt:       235 227 213;   /* #EBE3D5 — deeper cream for sections */
-
-  /* Type tiers */
-  --fg:            26  20  16;   /* #1A1410 — warm near-black */
-  --muted:        107  93  79;   /* #6B5D4F — warm grey for captions/meta */
-
-  /* Card surface */
-  --card:         255 251 244;   /* slightly lighter than bg, warm */
-
-  /* Hairline border */
-  --border:       217 207 184;   /* #D9CFB8 — barely-there */
-
-  /* Accents */
-  --accent:       184  92  56;   /* #B85C38 — terracotta */
-  --accent-2:      45  63  46;   /* #2D3F2E — forest */
+  --bg:           252 248 241;   /* #FCF8F1 — warm cream, never pure white */
+  --bg-alt:       236 226 206;   /* #ECE2CE — surface */
+  --bg-warm:      244 236 218;   /* #F4ECDA — between bg and bg-alt for editorial section */
+  --fg:            74  66  57;   /* #4A4239 — warm dark brown ink */
+  --muted:        168 160 146;   /* #A8A092 — captions / meta */
+  --card:         252 248 241;   /* same as bg; cards rely on hairline border, not surface contrast */
+  --border:       226 213 186;   /* #E2D5BA — hairlines */
+  --accent:       184 152 120;   /* #B89878 — soft camel */
+  --accent-2:     142 111  79;   /* #8E6F4F — accent deep, italic emphasis + hover */
 }
 
 /*
- * Dark mode skews the same warmth onto a deep ink — still no pure black.
- * Optional; matches system preference.
+ * Optional dark mode keeps the same warmth but inverts background/ink.
+ * Same seven values, recoded.
  */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg:           26  20  16;
-    --bg-alt:       38  30  24;
-    --fg:          245 239 230;
-    --muted:       163 149 130;
-    --card:         38  30  24;
-    --border:       66  54  44;
-    --accent:      207 124  93;
-    --accent-2:    149 167 138;
+    --bg:            34  29  24;
+    --bg-alt:        47  40  31;
+    --bg-warm:       40  34  27;
+    --fg:           236 226 206;
+    --muted:        140 132 118;
+    --card:          34  29  24;
+    --border:        70  60  47;
+    --accent:       184 152 120;
+    --accent-2:     202 174 138;
   }
 }
 
@@ -51,31 +44,41 @@ html, body {
 
 body {
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
-  font-feature-settings: "ss01", "cv05", "cv11"; /* Inter stylistic alts where present */
+  font-weight: 300;
+  font-size: 16px;
+  line-height: 1.65;
+  position: relative;
+  font-feature-settings: "ss01", "cv05", "cv11";
+}
+
+/* Editorial type — Fraunces 300 + selective italic emphasis. */
+h1, h2, h3, .font-display {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+}
+
+/* Mono accents — prices, codes, "01 / SS26". Used sparingly. */
+.font-mono, code, kbd, samp {
+  font-family: var(--font-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-weight: 400;
 }
 
 /*
- * Editorial type rules — bigger, more spacious than feels comfortable.
- * Uncomfortable is the point.
+ * Editorial nav — caps, lettered, breathing. Underline animates from left.
+ * 350ms easing matches site-wide cubic-bezier(.2,.8,.2,1).
  */
-h1, h2, h3, .font-display {
-  font-family: var(--font-display), Georgia, serif;
-  letter-spacing: -0.01em;
-}
-
-/* Mono accents — prices, codes, "NEW" tags. Used sparingly. */
-.font-mono, code, kbd, samp {
-  font-family: var(--font-mono), ui-monospace, "SF Mono", Menlo, monospace;
-}
-
-/* Editorial nav — all caps, lettered, breathing. */
 .nav-link {
   font-family: var(--font-sans), sans-serif;
-  font-size: 13px;
-  letter-spacing: 0.12em;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   position: relative;
+  color: rgb(var(--fg));
+  transition: color 350ms cubic-bezier(.2,.8,.2,1);
 }
+.nav-link:hover { color: rgb(var(--accent-2)); }
 .nav-link::after {
   content: "";
   position: absolute;
@@ -84,9 +87,69 @@ h1, h2, h3, .font-display {
   height: 1px;
   width: 0;
   background: currentColor;
-  transition: width 250ms ease;
+  transition: width 350ms cubic-bezier(.2,.8,.2,1);
 }
 .nav-link:hover::after,
 .nav-link[aria-current="page"]::after {
   width: 100%;
+}
+
+/* Editorial text-link CTA: bottom hairline + arrow, no button chrome. */
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  border-bottom: 1px solid rgb(var(--fg));
+  padding-bottom: 4px;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  transition: color 350ms cubic-bezier(.2,.8,.2,1), border-color 350ms cubic-bezier(.2,.8,.2,1);
+}
+.text-link:hover {
+  color: rgb(var(--accent-2));
+  border-color: rgb(var(--accent-2));
+}
+
+/*
+ * Page-load stagger reveal. Apply .reveal to elements; they start
+ * 24px below + transparent, then settle into position.
+ * Delay variants 1/2/3/4 cascade 100/300/500/700ms.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: reveal 1.2s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  .reveal-1 { animation-delay: 100ms; }
+  .reveal-2 { animation-delay: 300ms; }
+  .reveal-3 { animation-delay: 500ms; }
+  .reveal-4 { animation-delay: 700ms; }
+  .reveal-5 { animation-delay: 900ms; }
+  @keyframes reveal {
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+/*
+ * Barely-perceptible noise overlay for printed-editorial feel.
+ * Position fixed so it never scrolls; pointer-events none so it
+ * never intercepts. SVG inlined as a data URI.
+ */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.7'/></svg>");
+}
+/* App content sits above the noise overlay. */
+body > * { position: relative; z-index: 2; }
+
+/* Focus-visible — meets the 2px solid ink + 4px offset spec. */
+*:focus-visible {
+  outline: 2px solid rgb(var(--fg));
+  outline-offset: 4px;
 }
