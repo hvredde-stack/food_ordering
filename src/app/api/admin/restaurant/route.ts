@@ -29,6 +29,10 @@ const PatchBody = z.object({
   description: z.string().max(500).optional(),
   currency: z.string().length(3).optional(),
   timezone: z.string().max(60).optional(),
+  dine_in_enabled: z.boolean().optional(),
+  takeout_enabled: z.boolean().optional(),
+  // Setting takeout_code regenerates the master takeout QR.
+  regenerate_takeout_code: z.boolean().optional(),
 });
 
 export async function PATCH(req: Request) {
@@ -38,9 +42,14 @@ export async function PATCH(req: Request) {
   if (!parsed.ok) return parsed.response;
 
   const supabase = getSupabaseAdmin();
+  const { regenerate_takeout_code, ...rest } = parsed.data;
+  const updates: Record<string, unknown> = { ...rest };
+  if (regenerate_takeout_code) {
+    updates.takeout_code = `to-${Math.random().toString(36).slice(2, 12)}`;
+  }
   const { data, error } = await supabase
     .from("restaurants")
-    .update(parsed.data)
+    .update(updates)
     .eq("id", ctx.restaurant.id)
     .select("*")
     .single();

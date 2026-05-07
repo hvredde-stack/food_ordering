@@ -18,7 +18,7 @@ export async function GET(req: Request) {
     await Promise.all([
       supabase
         .from("orders")
-        .select("created_at, total_cents, status")
+        .select("created_at, total_cents, status, order_type")
         .eq("restaurant_id", ctx.restaurant.id)
         .gte("created_at", sinceIso),
       supabase
@@ -93,10 +93,11 @@ export async function GET(req: Request) {
   const sentimentByDay = [...sentMap.values()].sort((a, b) => a.day.localeCompare(b.day));
 
   // Headline KPIs.
-  const totalOrders = (orders ?? []).filter((o) => o.status !== "cancelled").length;
-  const totalRevenue = (orders ?? [])
-    .filter((o) => o.status !== "cancelled")
-    .reduce((sum, o) => sum + ((o.total_cents as number) ?? 0), 0);
+  const liveOrders = (orders ?? []).filter((o) => o.status !== "cancelled");
+  const totalOrders = liveOrders.length;
+  const totalRevenue = liveOrders.reduce((s, o) => s + ((o.total_cents as number) ?? 0), 0);
+  const dineInOrders = liveOrders.filter((o) => o.order_type === "dine-in");
+  const takeoutOrders = liveOrders.filter((o) => o.order_type === "takeout");
   const happyCount = (sentiment ?? []).filter((s) => s.kind === "happy").length;
   const sadCount = (sentiment ?? []).filter((s) => s.kind === "sad").length;
   const avgRating =
@@ -109,6 +110,10 @@ export async function GET(req: Request) {
     kpis: {
       total_orders: totalOrders,
       total_revenue_cents: totalRevenue,
+      dine_in_orders: dineInOrders.length,
+      dine_in_revenue_cents: dineInOrders.reduce((s, o) => s + ((o.total_cents as number) ?? 0), 0),
+      takeout_orders: takeoutOrders.length,
+      takeout_revenue_cents: takeoutOrders.reduce((s, o) => s + ((o.total_cents as number) ?? 0), 0),
       happy: happyCount,
       sad: sadCount,
       avg_rating: avgRating,

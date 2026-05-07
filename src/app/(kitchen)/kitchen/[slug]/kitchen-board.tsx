@@ -1,17 +1,24 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Smile, Frown, Flame, ChefHat, CheckCircle2, RotateCw } from "lucide-react";
+import { Smile, Frown, Flame, ChefHat, CheckCircle2, RotateCw, ShoppingBag, Utensils } from "lucide-react";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/badge";
 import { useClerkSupabaseClient } from "@/hooks/use-supabase";
 import { formatMoney, formatRelativeTime } from "@/lib/utils";
-import type { ItemStatus, OrderItem, Order, RestaurantTable, SentimentEvent } from "@/lib/types";
+import type {
+  ItemStatus,
+  OrderItem,
+  Order,
+  RestaurantTable,
+  SentimentEvent,
+  OrderType,
+} from "@/lib/types";
 
 interface OrderRow extends Order {
   items: OrderItem[];
-  table: Pick<RestaurantTable, "id" | "code" | "label">;
+  table: Pick<RestaurantTable, "id" | "code" | "label"> | null;
 }
 
 interface Props {
@@ -19,6 +26,14 @@ interface Props {
   restaurantSlug: string;
   restaurantName: string;
   currency: string;
+}
+
+interface Group {
+  key: string;
+  type: OrderType;
+  label: string;     // "Table T-01" | "Takeout"
+  sublabel?: string; // table label or takeout customer count
+  orders: OrderRow[];
 }
 
 export function KitchenBoard({ restaurantId, restaurantSlug, restaurantName, currency }: Props) {
@@ -41,9 +56,6 @@ export function KitchenBoard({ restaurantId, restaurantSlug, restaurantName, cur
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  // Real-time refresh on any relevant change. The Clerk session token
-  // is attached automatically via supabase-js's accessToken callback,
-  // so RLS sees auth.jwt()->>'sub' and lets the owner through.
   useEffect(() => {
     const ch = supabase
       .channel(`kitchen-${restaurantId}`)
@@ -67,7 +79,6 @@ export function KitchenBoard({ restaurantId, restaurantSlug, restaurantName, cur
   }, [restaurantId, refresh, supabase]);
 
   async function setItemStatus(item: OrderItem, status: ItemStatus) {
-    // Optimistic update.
     setOrders((prev) =>
       prev.map((o) =>
         o.id === item.order_id
@@ -82,15 +93,30 @@ export function KitchenBoard({ restaurantId, restaurantSlug, restaurantName, cur
     });
   }
 
-  const grouped = useMemo(() => {
-    const m = new Map<string, { table: OrderRow["table"]; orders: OrderRow[] }>();
+  // Group: dine-in by table_id, takeout by takeout_code
+  const groups = useMemo<Group[]>(() => {
+    const m = new Map<string, Group>();
     for (const o of orders) {
-      const k = o.table.id;
-      const e = m.get(k) ?? { table: o.table, orders: [] };
-      e.orders.push(o);
-      m.set(k, e);
+      const isTakeout = o.order_type === "takeout";
+      const key = isTakeout ? `to:${o.takeout_code}` : `t:${o.table?.id ?? "?"}`;
+      const existing = m.get(key);
+      if (existing) {
+        existing.orders.push(o);
+        continue;
+      }
+      m.set(key, {
+        key,
+        type: isTakeout ? "takeout" : "dine-in",
+        label: isTakeout ? "Takeout" : `Table ${o.table?.code ?? "?"}`,
+        sublabel: isTakeout ? undefined : (o.table?.label ?? undefined),
+        orders: [o],
+      });
     }
-    return [...m.values()].sort((a, b) => a.table.code.localeCompare(b.table.code));
+    // Stable sort: dine-in first, then takeout, alphabetical within
+    return [...m.values()].sort((a, b) => {
+      if (a.type !== b.type) return a.type === "dine-in" ? -1 : 1;
+      return a.label.localeCompare(b.label);
+    });
   }, [orders]);
 
   const recentSadCount = sentiment.filter((s) => s.kind === "sad").length;
@@ -116,57 +142,91 @@ export function KitchenBoard({ restaurantId, restaurantSlug, restaurantName, cur
       <main className="max-w-7xl mx-auto px-4 py-5">
         {loading ? (
           <div className="text-muted text-center py-10">Loading…</div>
-        ) : grouped.length === 0 ? (
+        ) : groups.length === 0 ? (
           <Card><CardBody className="text-center py-16 text-muted">
             All clear — no active orders.
           </CardBody></Card>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {grouped.map(({ table, orders }) => (
-              <Card key={table.id} className="overflow-hidden">
-                <CardHeader className="flex justify-between items-center">
-                  <div>
-                    <div className="font-semibold">Table {table.code}</div>
-                    {table.label && <div className="text-xs text-muted">{table.label}</div>}
-                  </div>
-                  <div className="text-xs text-muted">{orders.length} order{orders.length === 1 ? "" : "s"}</div>
-                </CardHeader>
-                <div className="divide-y divide-border">
-                  {orders.map((o) => (
-                    <div key={o.id} className="p-3">
-                      <div className="flex justify-between items-center mb-2">
-                        <div className="text-xs text-muted">
-                          #{o.id.slice(0, 6)} · {formatRelativeTime(o.created_at)}
-                        </div>
-                        <StatusBadge status={o.status} />
-                      </div>
-                      <div className="space-y-2">
-                        {o.items.map((it) => (
-                          <ItemControl
-                            key={it.id}
-                            item={it}
-                            currency={currency}
-                            onStatus={(s) => setItemStatus(it, s)}
-                          />
-                        ))}
-                      </div>
-                      {o.notes && (
-                        <div className="mt-2 text-xs italic text-muted border-l-2 border-border pl-2">
-                          “{o.notes}”
-                        </div>
-                      )}
-                      <div className="mt-2 text-right text-xs text-muted">
-                        {formatMoney(o.total_cents, currency)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
+            {groups.map((g) => (
+              <GroupCard
+                key={g.key}
+                group={g}
+                currency={currency}
+                onStatus={setItemStatus}
+              />
             ))}
           </div>
         )}
       </main>
     </div>
+  );
+}
+
+function GroupCard({
+  group,
+  currency,
+  onStatus,
+}: {
+  group: Group;
+  currency: string;
+  onStatus: (item: OrderItem, status: ItemStatus) => void;
+}) {
+  const Icon = group.type === "takeout" ? ShoppingBag : Utensils;
+  const toneClass = group.type === "takeout" ? "bg-amber-50" : "bg-card";
+  const peopleNames = Array.from(
+    new Set(group.orders.map((o) => o.customer_name).filter(Boolean) as string[])
+  );
+
+  return (
+    <Card className={`overflow-hidden ${toneClass}`}>
+      <CardHeader className="flex justify-between items-start">
+        <div>
+          <div className="font-semibold flex items-center gap-1.5">
+            <Icon className="w-4 h-4" />
+            {group.label}
+          </div>
+          {group.sublabel && <div className="text-xs text-muted">{group.sublabel}</div>}
+          {peopleNames.length > 0 && (
+            <div className="text-xs text-muted mt-0.5">{peopleNames.join(", ")}</div>
+          )}
+        </div>
+        <div className="text-xs text-muted">
+          {group.orders.length} order{group.orders.length === 1 ? "" : "s"}
+        </div>
+      </CardHeader>
+      <div className="divide-y divide-border">
+        {group.orders.map((o) => (
+          <div key={o.id} className="p-3">
+            <div className="flex justify-between items-center mb-2">
+              <div className="text-xs text-muted">
+                <span className="font-medium text-fg">{o.customer_name ?? "Guest"}</span>
+                {" · "}{formatRelativeTime(o.created_at)}
+              </div>
+              <StatusBadge status={o.status} />
+            </div>
+            <div className="space-y-2">
+              {o.items.map((it) => (
+                <ItemControl
+                  key={it.id}
+                  item={it}
+                  currency={currency}
+                  onStatus={(s) => onStatus(it, s)}
+                />
+              ))}
+            </div>
+            {o.notes && (
+              <div className="mt-2 text-xs italic text-muted border-l-2 border-border pl-2">
+                "{o.notes}"
+              </div>
+            )}
+            <div className="mt-2 text-right text-xs text-muted">
+              {formatMoney(o.total_cents, currency)}
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
   );
 }
 
@@ -184,6 +244,11 @@ function ItemControl({
       <div className="flex justify-between items-center gap-2">
         <div className="font-medium text-sm">
           ×{item.quantity} {item.dish_name}
+          {item.customer_name && (
+            <span className="ml-2 text-[10px] uppercase tracking-wider text-muted">
+              {item.customer_name}
+            </span>
+          )}
         </div>
         <div className="text-xs text-muted whitespace-nowrap">
           {formatMoney(item.unit_price_cents * item.quantity, currency)}
@@ -215,7 +280,10 @@ function ItemControl({
 }
 
 function SentimentPulse({ happy, sad }: { happy: number; sad: number }) {
-  const tone = sad > happy ? "bg-red-100 text-red-800" : happy > 0 ? "bg-green-100 text-green-800" : "bg-zinc-100 text-zinc-700";
+  const tone =
+    sad > happy ? "bg-red-100 text-red-800"
+    : happy > 0 ? "bg-green-100 text-green-800"
+    : "bg-zinc-100 text-zinc-700";
   return (
     <div className={`hidden sm:flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm ${tone}`}>
       <span className="inline-flex items-center gap-1"><Smile className="w-4 h-4" /> {happy}</span>

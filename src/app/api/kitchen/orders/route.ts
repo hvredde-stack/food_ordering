@@ -1,7 +1,8 @@
 // GET /api/kitchen/orders?restaurant=<slug>
-// Clerk-authed staff only. The slug must match the staff member's restaurant.
+// Clerk-authed staff only. Returns active orders (pending/preparing/ready)
+// for the staff's restaurant, with the table or takeout group attached.
 
-import { json, badRequest, forbidden, notFound, serverError, unauthorized } from "@/lib/api";
+import { json, badRequest, forbidden, serverError, unauthorized } from "@/lib/api";
 import { getAdminContext } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
@@ -34,7 +35,12 @@ export async function GET(req: Request) {
     .order("created_at", { ascending: false });
 
   return json({
-    restaurant: { id: restaurant.id, name: restaurant.name, currency: restaurant.currency },
+    restaurant: {
+      id: restaurant.id,
+      name: restaurant.name,
+      currency: restaurant.currency,
+      takeout_code: restaurant.takeout_code,
+    },
     orders: orders ?? [],
     sentiment: sentiment ?? [],
   });

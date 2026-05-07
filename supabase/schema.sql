@@ -28,23 +28,34 @@ do $$ begin
   create type sentiment_kind as enum ('happy','sad');
 exception when duplicate_object then null; end $$;
 
+do $$ begin
+  create type order_type as enum ('dine-in','takeout');
+exception when duplicate_object then null; end $$;
+
 -- ---------------------------------------------------------------
 -- Tenants
 -- ---------------------------------------------------------------
 create table if not exists restaurants (
-  id            uuid primary key default gen_random_uuid(),
-  slug          text unique not null,
-  name          text not null,
-  description   text,
-  logo_url      text,
+  id              uuid primary key default gen_random_uuid(),
+  slug            text unique not null,
+  name            text not null,
+  description     text,
+  logo_url        text,
   -- Clerk user id of the owner (admin). One owner per restaurant in v1.
-  owner_user_id text not null,
-  currency      text not null default 'USD',
-  timezone      text not null default 'UTC',
-  created_at    timestamptz not null default now(),
-  updated_at    timestamptz not null default now()
+  owner_user_id   text not null,
+  currency        text not null default 'USD',
+  timezone        text not null default 'UTC',
+  -- Mode toggles (admin can disable either flow).
+  dine_in_enabled boolean not null default true,
+  takeout_enabled boolean not null default true,
+  -- Master takeout code — used in /to/<slug>/<takeout_code> URL + master QR.
+  takeout_code    text,
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
 );
 create index if not exists restaurants_owner_idx on restaurants(owner_user_id);
+create unique index if not exists restaurants_takeout_code_idx
+  on restaurants(takeout_code) where takeout_code is not null;
 
 -- ---------------------------------------------------------------
 -- Menu
@@ -97,7 +108,11 @@ create index if not exists tables_rest_idx on restaurant_tables(restaurant_id);
 create table if not exists customer_sessions (
   id              uuid primary key default gen_random_uuid(),
   restaurant_id   uuid not null references restaurants(id) on delete cascade,
-  table_id        uuid not null references restaurant_tables(id) on delete cascade,
+  -- Dine-in: table_id required, takeout_code null.
+  -- Takeout:  takeout_code required, table_id null.
+  table_id        uuid references restaurant_tables(id) on delete cascade,
+  takeout_code    text,
+  order_type      order_type not null default 'dine-in',
   -- Random token issued to the client; stored in an HTTP-only cookie.
   token           text unique not null,
   status          session_status not null default 'active',
@@ -107,10 +122,16 @@ create table if not exists customer_sessions (
   last_active_at  timestamptz not null default now(),
   expires_at      timestamptz not null,
   cleaned_at      timestamptz,
-  cleaned_by_user_id text
+  cleaned_by_user_id text,
+  constraint session_scope_check check (
+    (order_type = 'dine-in' and table_id is not null) or
+    (order_type = 'takeout' and takeout_code is not null)
+  )
 );
 create index if not exists sessions_rest_status_idx on customer_sessions(restaurant_id, status);
 create index if not exists sessions_table_status_idx on customer_sessions(table_id, status);
+create index if not exists sessions_takeout_idx
+  on customer_sessions(takeout_code, status) where takeout_code is not null;
 
 -- ---------------------------------------------------------------
 -- Orders + items
@@ -118,8 +139,13 @@ create index if not exists sessions_table_status_idx on customer_sessions(table_
 create table if not exists orders (
   id            uuid primary key default gen_random_uuid(),
   restaurant_id uuid not null references restaurants(id) on delete cascade,
-  table_id      uuid not null references restaurant_tables(id) on delete restrict,
+  -- Dine-in orders carry table_id; takeout orders carry takeout_code.
+  table_id      uuid references restaurant_tables(id) on delete restrict,
+  takeout_code  text,
   session_id    uuid not null references customer_sessions(id) on delete cascade,
+  order_type    order_type not null default 'dine-in',
+  -- Snapshot of the customer's name at order time (also stored on items).
+  customer_name text,
   status        order_status not null default 'pending',
   total_cents   int not null default 0,
   notes         text,
@@ -129,6 +155,8 @@ create table if not exists orders (
 create index if not exists orders_rest_status_idx on orders(restaurant_id, status, created_at desc);
 create index if not exists orders_session_idx on orders(session_id, created_at desc);
 create index if not exists orders_table_idx on orders(table_id, created_at desc);
+create index if not exists orders_takeout_status_idx
+  on orders(takeout_code, status, created_at desc) where takeout_code is not null;
 
 create table if not exists order_items (
   id            uuid primary key default gen_random_uuid(),
@@ -141,6 +169,8 @@ create table if not exists order_items (
   quantity      int not null default 1 check (quantity > 0),
   status        item_status not null default 'pending',
   notes         text,
+  -- Per-item attribution: which person at the table/takeout group ordered this.
+  customer_name text,
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
 );

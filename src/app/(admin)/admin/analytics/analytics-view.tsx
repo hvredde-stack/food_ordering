@@ -14,6 +14,10 @@ interface Analytics {
   kpis: {
     total_orders: number;
     total_revenue_cents: number;
+    dine_in_orders: number;
+    dine_in_revenue_cents: number;
+    takeout_orders: number;
+    takeout_revenue_cents: number;
     happy: number;
     sad: number;
     avg_rating: number | null;
@@ -77,6 +81,17 @@ export function AnalyticsView({ currency }: { currency: string }) {
             <Stat
               label="Avg rating"
               value={data.kpis.avg_rating != null ? data.kpis.avg_rating.toFixed(2) : "—"}
+            />
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Stat
+              label="Dine-in"
+              value={`${data.kpis.dine_in_orders} orders · ${formatMoney(data.kpis.dine_in_revenue_cents, currency)}`}
+            />
+            <Stat
+              label="Takeout"
+              value={`${data.kpis.takeout_orders} orders · ${formatMoney(data.kpis.takeout_revenue_cents, currency)}`}
             />
           </div>
 

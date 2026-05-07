@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
-import { LayoutDashboard, UtensilsCrossed, ListOrdered, BarChart3, Table2 } from "lucide-react";
+import { LayoutDashboard, UtensilsCrossed, ListOrdered, BarChart3, Table2, Settings } from "lucide-react";
 
 const NAV = [
   { href: "/admin",           label: "Overview",  icon: LayoutDashboard },
@@ -9,6 +9,7 @@ const NAV = [
   { href: "/admin/tables",    label: "Tables",    icon: Table2 },
   { href: "/admin/orders",    label: "Orders",    icon: ListOrdered },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/admin/settings",  label: "Settings",  icon: Settings },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

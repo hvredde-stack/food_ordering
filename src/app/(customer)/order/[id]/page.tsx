@@ -1,37 +1,8 @@
-import { redirect, notFound } from "next/navigation";
-import { getActiveSession } from "@/lib/session";
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { OrderTracker } from "./order-tracker";
-import { SentimentButtons } from "@/components/customer/sentiment-buttons";
+// Legacy per-order tracker URL — superseded by the shared /session view.
+// Kept as a redirect so any bookmark / cached link still works.
 
-export default async function OrderPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const session = await getActiveSession();
-  if (!session) redirect("/");
+import { redirect } from "next/navigation";
 
-  const supabase = getSupabaseAdmin();
-  const { data: order } = await supabase
-    .from("orders")
-    .select("*, items:order_items(*)")
-    .eq("id", id)
-    .eq("session_id", session.id)
-    .maybeSingle();
-  if (!order) notFound();
-
-  const { data: restaurant } = await supabase
-    .from("restaurants")
-    .select("currency, name")
-    .eq("id", session.restaurant_id)
-    .single();
-
-  return (
-    <>
-      <OrderTracker
-        initialOrder={order as any}
-        currency={(restaurant?.currency as string) ?? "USD"}
-        restaurantName={(restaurant?.name as string) ?? ""}
-      />
-      <SentimentButtons />
-    </>
-  );
+export default function LegacyOrderRedirect() {
+  redirect("/session");
 }

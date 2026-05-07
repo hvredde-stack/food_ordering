@@ -40,12 +40,15 @@ export async function ensureRestaurantForUser(input: {
     .maybeSingle();
   if (existing) return existing as Restaurant;
 
+  // Generate a unique master takeout code on creation.
+  const takeoutCode = `to-${Math.random().toString(36).slice(2, 12)}`;
   const { data, error } = await supabase
     .from("restaurants")
     .insert({
       owner_user_id: input.userId,
       name: input.name,
       slug: input.slug,
+      takeout_code: takeoutCode,
     })
     .select("*")
     .single();

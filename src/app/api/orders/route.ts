@@ -48,7 +48,10 @@ export async function POST(req: Request) {
     .insert({
       restaurant_id: session.restaurant_id,
       table_id: session.table_id,
+      takeout_code: session.takeout_code,
       session_id: session.id,
+      order_type: session.order_type,
+      customer_name: session.customer_name,
       status: "pending",
       total_cents: 0,
       notes: parsed.data.notes ?? null,
@@ -68,6 +71,8 @@ export async function POST(req: Request) {
       quantity: i.quantity,
       notes: i.notes ?? null,
       status: "pending" as const,
+      // Per-person attribution (snapshot from session at order time).
+      customer_name: session.customer_name,
     };
   });
 

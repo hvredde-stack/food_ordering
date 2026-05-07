@@ -19,24 +19,46 @@ export function ttlExpiresAt(): string {
   return new Date(Date.now() + env.sessionTtlSeconds * 1000).toISOString();
 }
 
-interface CreateSessionInput {
-  restaurantId: string;
-  tableId: string;
-  partySize?: number;
-  customerName?: string;
-}
+type CreateSessionInput =
+  | {
+      kind: "dine-in";
+      restaurantId: string;
+      tableId: string;
+      partySize?: number;
+      customerName?: string;
+    }
+  | {
+      kind: "takeout";
+      restaurantId: string;
+      takeoutCode: string;
+      customerName?: string;
+    };
 
 export async function createSession(input: CreateSessionInput): Promise<CustomerSession> {
   const supabase = getSupabaseAdmin();
   const token = newSessionToken();
+  const row =
+    input.kind === "dine-in"
+      ? {
+          restaurant_id: input.restaurantId,
+          table_id: input.tableId,
+          takeout_code: null,
+          order_type: "dine-in" as const,
+          party_size: input.partySize ?? null,
+        }
+      : {
+          restaurant_id: input.restaurantId,
+          table_id: null,
+          takeout_code: input.takeoutCode,
+          order_type: "takeout" as const,
+          party_size: null,
+        };
   const { data, error } = await supabase
     .from("customer_sessions")
     .insert({
-      restaurant_id: input.restaurantId,
-      table_id: input.tableId,
+      ...row,
       token,
       status: "active",
-      party_size: input.partySize ?? null,
       customer_name: input.customerName ?? null,
       expires_at: ttlExpiresAt(),
     })

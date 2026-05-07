@@ -39,9 +39,9 @@ export function CartView({ currency }: { currency: string }) {
         setErr(j.error ?? "Could not place order");
         return;
       }
-      const { order } = await res.json();
+      await res.json();
       cart.clear();
-      router.push(`/order/${order.id}`);
+      router.push("/session");
     } catch {
       setErr("Network error");
     } finally {

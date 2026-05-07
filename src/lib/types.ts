@@ -5,6 +5,7 @@ export type OrderStatus = "pending" | "preparing" | "ready" | "served" | "cancel
 export type ItemStatus = OrderStatus;
 export type SessionStatus = "active" | "expired" | "cleaned";
 export type SentimentKind = "happy" | "sad";
+export type OrderType = "dine-in" | "takeout";
 
 export interface Restaurant {
   id: string;
@@ -15,6 +16,9 @@ export interface Restaurant {
   owner_user_id: string;
   currency: string;
   timezone: string;
+  dine_in_enabled: boolean;
+  takeout_enabled: boolean;
+  takeout_code: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -53,7 +57,9 @@ export interface RestaurantTable {
 export interface CustomerSession {
   id: string;
   restaurant_id: string;
-  table_id: string;
+  table_id: string | null;
+  takeout_code: string | null;
+  order_type: OrderType;
   token: string;
   status: SessionStatus;
   party_size: number | null;
@@ -68,8 +74,11 @@ export interface CustomerSession {
 export interface Order {
   id: string;
   restaurant_id: string;
-  table_id: string;
+  table_id: string | null;
+  takeout_code: string | null;
   session_id: string;
+  order_type: OrderType;
+  customer_name: string | null;
   status: OrderStatus;
   total_cents: number;
   notes: string | null;
@@ -87,6 +96,7 @@ export interface OrderItem {
   quantity: number;
   status: ItemStatus;
   notes: string | null;
+  customer_name: string | null;
   created_at: string;
   updated_at: string;
 }

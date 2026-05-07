@@ -6,20 +6,23 @@ import { Card, CardBody } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-export function TableConfirm({
+export function TakeoutConfirm({
   restaurantSlug,
-  tableCode,
+  takeoutCode,
 }: {
   restaurantSlug: string;
-  tableCode: string;
+  takeoutCode: string;
 }) {
   const router = useRouter();
   const [name, setName] = useState("");
-  const [partySize, setPartySize] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   async function start() {
+    if (!name.trim()) {
+      setErr("Please enter your name.");
+      return;
+    }
     setBusy(true);
     setErr(null);
     try {
@@ -27,11 +30,10 @@ export function TableConfirm({
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          mode: "dine-in",
+          mode: "takeout",
           restaurantSlug,
-          tableCode,
-          customerName: name || undefined,
-          partySize: partySize ? Number(partySize) : undefined,
+          takeoutCode,
+          customerName: name.trim(),
         }),
       });
       if (!res.ok) {
@@ -51,24 +53,13 @@ export function TableConfirm({
     <Card className="mt-8">
       <CardBody className="space-y-3">
         <label className="block">
-          <span className="text-xs text-muted">Your name (optional)</span>
+          <span className="text-xs text-muted">Your name</span>
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Alex"
             className="mt-1"
-          />
-        </label>
-        <label className="block">
-          <span className="text-xs text-muted">Party size (optional)</span>
-          <Input
-            type="number"
-            min={1}
-            max={50}
-            value={partySize}
-            onChange={(e) => setPartySize(e.target.value)}
-            placeholder="2"
-            className="mt-1"
+            autoFocus
           />
         </label>
         {err && <div className="text-sm text-red-600">{err}</div>}
