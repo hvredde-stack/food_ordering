@@ -35,17 +35,17 @@ export function UrlHubFriendly({
           <StaffRow
             title="Restaurant admin"
             desc="Sign in to manage your menu, tables, and settings."
-            url={`${origin}/admin`}
+            url={`${origin}/${slug}/admin`}
           />
           <StaffRow
             title="Server app"
             desc="Your servers scan a table's QR to mark it cleaned."
-            url={`${origin}/server`}
+            url={`${origin}/${slug}/server`}
           />
           <StaffRow
             title="Kitchen dashboard"
             desc="Live order queue. Mark items preparing → ready → served."
-            url={`${origin}/kitchen/${slug}`}
+            url={`${origin}/${slug}/kitchen`}
           />
         </div>
       </div>
@@ -68,7 +68,7 @@ export function UrlHubFriendly({
                   key={t.id}
                   label={`Table ${t.code}`}
                   filename={`qr-table-${t.code}`}
-                  url={`${origin}/t/${slug}/${encodeURIComponent(t.code)}`}
+                  url={`${origin}/${slug}/t/${encodeURIComponent(t.code)}`}
                 />
               ))}
             </div>
@@ -85,7 +85,7 @@ export function UrlHubFriendly({
               <CustomerCard
                 label="Takeout pickup"
                 filename={`qr-takeout-${slug}`}
-                url={`${origin}/to/${slug}/${takeoutCode}`}
+                url={`${origin}/${slug}/to/${takeoutCode}`}
               />
             </div>
           </div>

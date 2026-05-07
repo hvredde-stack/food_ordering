@@ -1,30 +1,35 @@
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
-import { auth } from "@clerk/nextjs/server";
 import { LayoutDashboard, UtensilsCrossed, ListOrdered, BarChart3, Table2, Settings } from "lucide-react";
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { getRestaurantBySlug } from "@/lib/auth";
 
-const NAV = [
-  { href: "/admin",           label: "Overview",  icon: LayoutDashboard },
-  { href: "/admin/menu",      label: "Menu",      icon: UtensilsCrossed },
-  { href: "/admin/tables",    label: "Tables",    icon: Table2 },
-  { href: "/admin/orders",    label: "Orders",    icon: ListOrdered },
-  { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/admin/settings",  label: "Settings",  icon: Settings },
-];
+// Sidebar items for an authenticated admin. Built lazily per-slug so the
+// owner of /marioscafe and the owner of /pellegrino share the same JSX
+// without sharing tenant context.
+function nav(slug: string) {
+  return [
+    { href: `/${slug}/admin`,           label: "Overview",  icon: LayoutDashboard },
+    { href: `/${slug}/admin/menu`,      label: "Menu",      icon: UtensilsCrossed },
+    { href: `/${slug}/admin/tables`,    label: "Tables",    icon: Table2 },
+    { href: `/${slug}/admin/orders`,    label: "Orders",    icon: ListOrdered },
+    { href: `/${slug}/admin/analytics`, label: "Analytics", icon: BarChart3 },
+    { href: `/${slug}/admin/settings`,  label: "Settings",  icon: Settings },
+  ];
+}
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { userId } = await auth();
-  if (!userId) return <>{children}</>;
-
-  // Look up the restaurant name once for the sidebar wordmark.
-  const supabase = getSupabaseAdmin();
-  const { data: restaurant } = await supabase
-    .from("restaurants")
-    .select("name, slug")
-    .eq("owner_user_id", userId)
-    .maybeSingle();
-  const tenantName = (restaurant?.name as string | undefined) ?? "Admin";
+export default async function AdminLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  // Slug existence + reservation are validated by the parent [slug]/layout,
+  // so a null result here would indicate a race we shouldn't paper over.
+  const restaurant = await getRestaurantBySlug(slug);
+  const tenantName = restaurant?.name ?? "Admin";
+  const items = nav(slug);
 
   return (
     <div className="min-h-screen flex">
@@ -36,12 +41,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <div className="font-display text-xl mt-2 tracking-tight leading-tight truncate">
             {tenantName}
           </div>
-          {restaurant?.slug && (
-            <div className="font-mono text-[10px] text-muted mt-2 truncate">/{restaurant.slug as string}</div>
-          )}
+          <div className="font-mono text-[10px] text-muted mt-2 truncate">/{slug}</div>
         </div>
         <nav className="flex-1 p-3 space-y-0.5">
-          {NAV.map(({ href, label, icon: Icon }) => (
+          {items.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
@@ -66,7 +69,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <UserButton />
         </div>
         <div className="md:hidden border-b border-border overflow-x-auto flex gap-1 px-3 py-2 bg-card">
-          {NAV.map(({ href, label, icon: Icon }) => (
+          {items.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}

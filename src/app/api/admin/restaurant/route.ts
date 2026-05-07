@@ -8,9 +8,10 @@
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { json, parseJson, unauthorized, serverError } from "@/lib/api";
+import { json, parseJson, unauthorized, serverError, badRequest } from "@/lib/api";
 import { getOwnedRestaurant, getAdminContext } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { isReservedSlug, RESERVED_SLUG_HINT } from "@/lib/reserved-slugs";
 
 export async function GET() {
   const { userId } = await auth();
@@ -46,6 +47,9 @@ export async function PATCH(req: Request) {
 
   const supabase = getSupabaseAdmin();
   const { regenerate_takeout_code, ...rest } = parsed.data;
+  if (rest.slug && isReservedSlug(rest.slug)) {
+    return badRequest(`Slug "${rest.slug}" is reserved. ${RESERVED_SLUG_HINT}`);
+  }
   const updates: Record<string, unknown> = { ...rest };
   if (regenerate_takeout_code) {
     updates.takeout_code = `to-${Math.random().toString(36).slice(2, 12)}`;

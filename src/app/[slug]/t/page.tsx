@@ -44,7 +44,7 @@ export default async function RestaurantLanding({
 
   const takeoutUrl =
     restaurant.takeout_enabled && restaurant.takeout_code
-      ? `/to/${restaurant.slug}/${restaurant.takeout_code}`
+      ? `/${restaurant.slug}/to/${restaurant.takeout_code}`
       : null;
 
   return (

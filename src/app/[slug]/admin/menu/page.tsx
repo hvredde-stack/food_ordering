@@ -1,10 +1,15 @@
 import { redirect } from "next/navigation";
-import { getAdminContext } from "@/lib/auth";
+import { getRestaurantAccess } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { MenuManager } from "./menu-manager";
 
-export default async function AdminMenuPage() {
-  const ctx = await getAdminContext();
+export default async function AdminMenuPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const ctx = await getRestaurantAccess(slug);
   if (!ctx) redirect("/admin/sign-in");
 
   const supabase = getSupabaseAdmin();

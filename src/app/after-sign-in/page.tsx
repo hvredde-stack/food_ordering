@@ -21,7 +21,7 @@ export default async function AfterSignIn() {
   if (platform) redirect("/platform");
 
   const restaurant = await getOwnedRestaurant(userId);
-  if (restaurant) redirect("/admin");
+  if (restaurant) redirect(`/${restaurant.slug}/admin`);
 
   redirect("/onboarding");
 }

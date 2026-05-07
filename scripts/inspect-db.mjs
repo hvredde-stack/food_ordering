@@ -32,5 +32,5 @@ console.log(`\n[Tables] (${tables.length})`);
 for (const t of tables) {
   const r = restaurants.find((x) => x.id === t.restaurant_id);
   console.log(`  ${r?.slug ?? "?"}/${t.code}  label="${t.label}"  seats=${t.seats}`);
-  console.log(`    customer URL: https://tapserve.ca/t/${r?.slug}/${t.code}`);
+  console.log(`    customer URL: https://tapserve.ca/${r?.slug}/t/${t.code}`);
 }

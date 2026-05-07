@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { json, parseJson, badRequest, unauthorized, serverError } from "@/lib/api";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { isReservedSlug } from "@/lib/reserved-slugs";
 
 const Body = z.object({
   name: z.string().min(1).max(80),
@@ -119,9 +120,15 @@ async function pickAvailableSlug(
   userId: string
 ): Promise<string> {
   const trimmed = base || `r-${userId.slice(-6).toLowerCase()}`;
-  // Try the bare slug first.
-  let candidate = trimmed;
+  // Reserved slugs collide with the global routes (admin, platform, api,
+  // ...). If the auto-derived slug from the restaurant name lands on one,
+  // append a suffix up-front so we don't waste a uniqueness round on it.
+  let candidate = isReservedSlug(trimmed) ? `${trimmed}-r` : trimmed;
   for (let i = 0; i < 5; i++) {
+    if (isReservedSlug(candidate)) {
+      candidate = `${trimmed}-${Math.random().toString(36).slice(2, 6)}`.slice(0, 40);
+      continue;
+    }
     const { data } = await supabase
       .from("restaurants")
       .select("id")

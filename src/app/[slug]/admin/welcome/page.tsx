@@ -5,18 +5,20 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { auth } from "@clerk/nextjs/server";
-import { getOwnedRestaurant } from "@/lib/auth";
+import { getRestaurantAccess } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { UrlHubFriendly } from "./url-hub-friendly";
 
-export default async function WelcomePage() {
-  const { userId } = await auth();
-  if (!userId) redirect("/admin/sign-in");
-
-  const restaurant = await getOwnedRestaurant(userId);
-  if (!restaurant) redirect("/onboarding");
+export default async function WelcomePage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const access = await getRestaurantAccess(slug);
+  if (!access) redirect("/admin/sign-in");
+  const { restaurant } = access;
 
   const supabase = getSupabaseAdmin();
   const { data: tables } = await supabase
@@ -53,21 +55,21 @@ export default async function WelcomePage() {
             no="01"
             title="Add your menu"
             desc="Categories like Starters, Mains, Drinks. Then add dishes with prices and photos. Customers see updates instantly."
-            href="/admin/menu"
+            href={`/${slug}/admin/menu`}
             cta="Add menu items"
           />
           <NextStep
             no="02"
             title="Print your table QR codes"
             desc="Each table has a unique URL. We've already created QRs — just open the page, download as PNG, print one per table."
-            href="/admin/tables"
+            href={`/${slug}/admin/tables`}
             cta="Open table QRs"
           />
           <NextStep
             no="03"
             title="Set up takeout (optional)"
             desc="One master takeout QR. Place it at your counter or share it on social. Customers scan, order, you call them when it's ready."
-            href="/admin/settings"
+            href={`/${slug}/admin/settings`}
             cta="View takeout QR"
           />
         </div>
@@ -94,7 +96,7 @@ export default async function WelcomePage() {
       </div>
 
       <div className="mt-16 text-center">
-        <Link href="/admin" className="text-link group inline-flex">
+        <Link href={`/${slug}/admin`} className="text-link group inline-flex">
           <span>Go to your admin dashboard</span>
           <ArrowUpRight className="w-4 h-4 transition-transform duration-[350ms] ease-editorial group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
         </Link>

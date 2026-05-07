@@ -7,6 +7,7 @@ import { clerkClient } from "@clerk/nextjs/server";
 import { json, parseJson, unauthorized, badRequest, serverError } from "@/lib/api";
 import { getPlatformContext } from "@/lib/platform";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { isReservedSlug } from "@/lib/reserved-slugs";
 
 export async function GET() {
   const ctx = await getPlatformContext();
@@ -89,6 +90,10 @@ export async function POST(req: Request) {
   const ownerUserId = users[0].id;
 
   const supabase = getSupabaseAdmin();
+  // Reserved slugs collide with global routes (admin, platform, api, ...).
+  if (isReservedSlug(slug)) {
+    return badRequest(`Slug "${slug}" is reserved by the platform. Pick another.`);
+  }
   // Prevent duplicate slug.
   const { data: dupe } = await supabase.from("restaurants").select("id").eq("slug", slug).maybeSingle();
   if (dupe) return badRequest(`Slug "${slug}" is already in use.`);

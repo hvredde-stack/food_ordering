@@ -14,7 +14,7 @@ export default async function OnboardingPage() {
 
   // Already onboarded? Off to admin.
   const existing = await getOwnedRestaurant(userId);
-  if (existing) redirect("/admin");
+  if (existing) redirect(`/${existing.slug}/admin`);
 
   // Platform admins don't need a restaurant.
   const platform = await getPlatformContext();

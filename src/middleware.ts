@@ -1,21 +1,29 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// Clerk gates the staff/admin surfaces. Customer pages and the
-// /api/realtime/token endpoint are deliberately excluded — those flows
-// authenticate via the customer session cookie OR Clerk, decided at the
-// API route level.
+// Clerk gates the staff/admin surfaces. Customer pages — including the
+// slug-scoped /<slug>/t/<code> and /<slug>/to/<code> entry pages — are
+// deliberately excluded. Realtime token issuance authenticates via the
+// customer session cookie OR Clerk and is decided at the API route level.
 const isProtected = createRouteMatcher([
+  // Global routers / shims
   "/admin(.*)",
-  "/api/admin(.*)",
-  "/kitchen(.*)",
-  "/api/kitchen(.*)",
-  "/server(.*)",
-  "/api/server(.*)",
-  "/platform(.*)",
-  "/api/platform(.*)",
+  "/server",
   "/onboarding(.*)",
-  "/api/onboarding(.*)",
+  "/platform(.*)",
   "/after-sign-in(.*)",
+
+  // Slug-prefixed staff surfaces. Customer paths (/<slug>/t/, /<slug>/to/)
+  // are intentionally NOT listed here.
+  "/:slug/admin(.*)",
+  "/:slug/server",
+  "/:slug/kitchen",
+
+  // API
+  "/api/admin(.*)",
+  "/api/kitchen(.*)",
+  "/api/server(.*)",
+  "/api/platform(.*)",
+  "/api/onboarding(.*)",
 ]);
 
 const isPublicAuth = createRouteMatcher([

@@ -49,10 +49,9 @@ console.log(`Sign in:             ${APP}/admin/sign-in`);
 console.log(`Sign up:             ${APP}/admin/sign-up`);
 console.log(`Onboarding (auto):   ${APP}/onboarding`);
 
-console.log(`\n========== STAFF (auto-resolves to signed-in user's restaurant) ==========`);
-console.log(`Restaurant admin:    ${APP}/admin`);
-console.log(`Server app:          ${APP}/server`);
-console.log(`Kitchen:             ${APP}/kitchen`);
+console.log(`\n========== STAFF SHIMS (resolve to signed-in user's slug-scoped URL) ==========`);
+console.log(`Restaurant admin:    ${APP}/admin           (redirects to /<slug>/admin)`);
+console.log(`Server app:          ${APP}/server          (redirects to /<slug>/server)`);
 
 console.log(`\n========== PLATFORM (your company / SaaS owner) ==========`);
 console.log(`Platform overview:   ${APP}/platform`);
@@ -66,10 +65,12 @@ const real = restaurantsWithId.filter(
 );
 for (const r of real) {
   console.log(`\n--- ${r.name} (slug: ${r.slug}) [${r.status}] ---`);
-  console.log(`  Kitchen:           ${APP}/kitchen/${r.slug}`);
+  console.log(`  Owner admin:       ${APP}/${r.slug}/admin`);
+  console.log(`  Server app:        ${APP}/${r.slug}/server`);
+  console.log(`  Kitchen:           ${APP}/${r.slug}/kitchen`);
   console.log(`  Restaurant detail: ${APP}/platform/restaurants/${r.id}`);
   if (r.takeout_enabled && r.takeout_code) {
-    console.log(`  Customer takeout:  ${APP}/to/${r.slug}/${r.takeout_code}`);
+    console.log(`  Customer takeout:  ${APP}/${r.slug}/to/${r.takeout_code}`);
   }
   if (r.dine_in_enabled) {
     const ts = tableMap.get(r.id) ?? [];
@@ -77,7 +78,7 @@ for (const r of real) {
       console.log(`  Customer dine-in:  (no tables yet)`);
     } else {
       for (const code of ts) {
-        console.log(`  Table ${code}:        ${APP}/t/${r.slug}/${encodeURIComponent(code)}`);
+        console.log(`  Table ${code}:        ${APP}/${r.slug}/t/${encodeURIComponent(code)}`);
       }
     }
   }

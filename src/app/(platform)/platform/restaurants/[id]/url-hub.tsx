@@ -29,10 +29,10 @@ export function UrlHub({
 }) {
   const origin = typeof window === "undefined" ? "" : window.location.origin;
 
-  const staffAdmin   = `${origin}/admin`;
-  const staffServer  = `${origin}/server`;
-  const staffKitchen = `${origin}/kitchen/${slug}`;
-  const customerTakeout = takeoutCode ? `${origin}/to/${slug}/${takeoutCode}` : null;
+  const staffAdmin   = `${origin}/${slug}/admin`;
+  const staffServer  = `${origin}/${slug}/server`;
+  const staffKitchen = `${origin}/${slug}/kitchen`;
+  const customerTakeout = takeoutCode ? `${origin}/${slug}/to/${takeoutCode}` : null;
 
   return (
     <Card>
@@ -50,7 +50,7 @@ export function UrlHub({
           title="Restaurant admin"
           subtitle="Owner signs in here to manage menu, tables, settings."
           url={staffAdmin}
-          note="Auto-detects which restaurant from the signed-in Clerk user."
+          note="Path-scoped — the slug in the URL identifies the restaurant. Platform admins can also open this URL to inspect the tenant."
         />
         <UrlRow
           n={2}
@@ -58,7 +58,7 @@ export function UrlHub({
           title="Server app"
           subtitle="Staff scan a table QR to mark it cleaned."
           url={staffServer}
-          note="Auto-detects restaurant from the signed-in Clerk user."
+          note="Slug-scoped per restaurant. Owner-or-platform-admin access."
         />
         <UrlRow
           n={3}
@@ -92,7 +92,7 @@ export function UrlHub({
                 <CustomerUrlCard
                   key={t.id}
                   label={`Table ${t.code}${t.label ? ` (${t.label})` : ""}`}
-                  url={`${origin}/t/${slug}/${encodeURIComponent(t.code)}`}
+                  url={`${origin}/${slug}/t/${encodeURIComponent(t.code)}`}
                 />
               ))}
             </div>

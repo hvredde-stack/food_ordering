@@ -41,7 +41,11 @@ export function OnboardingWizard() {
         setErr(j.error ?? "Something went wrong. Please try again.");
         return;
       }
-      router.push("/admin/welcome");
+      // The API returns the freshly-created restaurant; jump straight to
+      // its slug-scoped welcome page so the URL is canonical from the
+      // first hit (rather than bouncing through the /admin shim).
+      const slug = j?.restaurant?.slug as string | undefined;
+      router.push(slug ? `/${slug}/admin/welcome` : "/admin");
     } catch (e) {
       setErr((e as Error).message);
     } finally {
