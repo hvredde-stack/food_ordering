@@ -57,6 +57,18 @@ export function KitchenBoard({ restaurantId, restaurantSlug, restaurantName, cur
 
   useEffect(() => { refresh(); }, [refresh]);
 
+  // Realtime is the fast path — when it works, the kitchen sees a new
+  // order ~50–200 ms after the customer hits "Place order". But Realtime
+  // depends on the Clerk JWT being verified by Supabase's third-party
+  // auth integration, on the channel subscription completing before the
+  // INSERT, and on the WebSocket staying alive. Any one of those can
+  // fail silently (network blip, expired token, etc.) and the kitchen
+  // would never see the order — exactly the "can't see until refresh"
+  // bug we shipped this fix for.
+  //
+  // The 4-second polling fallback below caps the worst case at 4 s of
+  // delay regardless of Realtime health. If both fire, refresh() is
+  // idempotent — no double-render harm.
   useEffect(() => {
     const ch = supabase
       .channel(`kitchen-${restaurantId}`)
@@ -75,9 +87,23 @@ export function KitchenBoard({ restaurantId, restaurantSlug, restaurantName, cur
         { event: "INSERT", schema: "public", table: "sentiment_events", filter: `restaurant_id=eq.${restaurantId}` },
         (payload) => { setSentiment((s) => [payload.new as SentimentEvent, ...s].slice(0, 60)); }
       )
-      .subscribe();
+      .subscribe((status) => {
+        // CHANNEL_ERROR / TIMED_OUT / CLOSED are silent failures by default.
+        // Logging keeps them debuggable from the browser console.
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          console.warn(`[kitchen] realtime ${status} — relying on poll fallback`);
+        }
+      });
     return () => { supabase.removeChannel(ch); };
   }, [restaurantId, refresh, supabase]);
+
+  // Polling fallback — runs unconditionally so a Realtime hiccup never
+  // costs more than 4 s of latency. 4 s feels live to the kitchen and
+  // keeps the request rate sane (~15/min per open kitchen tab).
+  useEffect(() => {
+    const id = setInterval(() => { refresh(); }, 4000);
+    return () => clearInterval(id);
+  }, [refresh]);
 
   async function setItemStatus(item: OrderItem, status: ItemStatus) {
     setOrders((prev) =>

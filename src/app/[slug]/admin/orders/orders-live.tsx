@@ -38,6 +38,12 @@ export function OrdersLive({ restaurantId, currency }: Props) {
 
   useEffect(() => { refresh(); }, [refresh]);
 
+  // Realtime broadcast (fast path) + 4-second polling fallback (safety
+  // net). Same reasoning as the kitchen board: Realtime can silently
+  // break — JWT expiry, channel error, race between subscribe and the
+  // INSERT — and a stale orders feed in admin produces the same kind
+  // of operator confusion as the kitchen. Polling caps worst-case
+  // latency at 4 s regardless of Realtime health.
   useEffect(() => {
     const ch = supabase
       .channel(`admin-orders-${restaurantId}`)
@@ -46,9 +52,18 @@ export function OrdersLive({ restaurantId, currency }: Props) {
         { event: "*", schema: "public", table: "orders", filter: `restaurant_id=eq.${restaurantId}` },
         () => { refresh(); }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          console.warn(`[admin-orders] realtime ${status} — relying on poll fallback`);
+        }
+      });
     return () => { supabase.removeChannel(ch); };
   }, [restaurantId, refresh, supabase]);
+
+  useEffect(() => {
+    const id = setInterval(() => { refresh(); }, 4000);
+    return () => clearInterval(id);
+  }, [refresh]);
 
   return (
     <div className="max-w-6xl mx-auto p-6 md:p-10 space-y-4">
