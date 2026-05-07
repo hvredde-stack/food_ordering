@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import { Card, CardBody } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/components/customer/cart-provider";
+
+// Storage key kept in sync with cart-provider.tsx. We touch localStorage
+// directly here instead of going through useCart() because the entry
+// pages live outside the (customer) route group's CartProvider — calling
+// useCart() here would throw "must be inside CartProvider" and crash the
+// whole client tree on QR scan.
+const CART_STORAGE_KEY = "ts_cart_v2";
 
 export function TableConfirm({
   restaurantSlug,
@@ -15,7 +21,6 @@ export function TableConfirm({
   tableCode: string;
 }) {
   const router = useRouter();
-  const cart = useCart();
   const [name, setName] = useState("");
   const [partySize, setPartySize] = useState("");
   const [busy, setBusy] = useState(false);
@@ -44,10 +49,8 @@ export function TableConfirm({
       // New session means a new diner — wipe any cart left over from a
       // previous scan in this browser. Without this, items added while
       // visiting Table 03's QR would carry over to Table 04 if both
-      // QRs were scanned from the same phone. The order would still
-      // tag with the new table, but the items the diner sees in the
-      // cart aren't the ones they actually picked.
-      cart.clear();
+      // QRs were scanned from the same phone.
+      try { localStorage.removeItem(CART_STORAGE_KEY); } catch {}
       router.push("/menu");
     } catch {
       setErr("Network error");
