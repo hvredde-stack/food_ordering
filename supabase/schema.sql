@@ -185,7 +185,8 @@ create table if not exists sentiment_events (
   id            uuid primary key default gen_random_uuid(),
   restaurant_id uuid not null references restaurants(id) on delete cascade,
   session_id    uuid not null references customer_sessions(id) on delete cascade,
-  table_id      uuid not null references restaurant_tables(id) on delete cascade,
+  -- Nullable: takeout sessions have no table.
+  table_id      uuid references restaurant_tables(id) on delete cascade,
   kind          sentiment_kind not null,
   created_at    timestamptz not null default now()
 );
@@ -196,7 +197,8 @@ create table if not exists feedback (
   id            uuid primary key default gen_random_uuid(),
   restaurant_id uuid not null references restaurants(id) on delete cascade,
   session_id    uuid not null references customer_sessions(id) on delete cascade unique,
-  table_id      uuid not null references restaurant_tables(id) on delete cascade,
+  -- Nullable: takeout sessions have no table.
+  table_id      uuid references restaurant_tables(id) on delete cascade,
   rating        int not null check (rating between 1 and 5),
   comment       text,
   created_at    timestamptz not null default now()
