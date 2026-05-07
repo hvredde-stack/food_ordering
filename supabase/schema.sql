@@ -200,6 +200,25 @@ create index if not exists order_items_rest_status_idx on order_items(restaurant
 create index if not exists order_items_dish_idx on order_items(dish_id);
 
 -- ---------------------------------------------------------------
+-- Per-restaurant staff allowlist (added in migration 06).
+-- Authorizes additional Clerk users to act on a restaurant alongside
+-- its owner. user_id is captured on first sign-in for a fast lookup.
+-- ---------------------------------------------------------------
+create table if not exists restaurant_staff (
+  id              uuid primary key default gen_random_uuid(),
+  restaurant_id   uuid not null references restaurants(id) on delete cascade,
+  email           text not null,
+  user_id         text,
+  invited_by_user_id text not null,
+  created_at      timestamptz not null default now(),
+  unique (restaurant_id, lower(email))
+);
+create index if not exists restaurant_staff_user_idx
+  on restaurant_staff(user_id) where user_id is not null;
+create index if not exists restaurant_staff_restaurant_idx
+  on restaurant_staff(restaurant_id);
+
+-- ---------------------------------------------------------------
 -- Sentiment + feedback
 -- ---------------------------------------------------------------
 create table if not exists sentiment_events (

@@ -41,6 +41,16 @@ export interface PlatformAdmin {
   invited_by_user_id: string | null;
 }
 
+export interface RestaurantStaff {
+  id: string;
+  restaurant_id: string;
+  email: string;
+  /** Captured on first sign-in via the after-sign-in router. */
+  user_id: string | null;
+  invited_by_user_id: string;
+  created_at: string;
+}
+
 export interface MenuCategory {
   id: string;
   restaurant_id: string;
