@@ -4,6 +4,7 @@ import { useState } from "react";
 import { RefreshCw, ShoppingBag, Utensils, ExternalLink, QrCode } from "lucide-react";
 import { Card, CardBody, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { QR, qrDataUrl } from "@/components/ui/qr";
 import type { Restaurant } from "@/lib/types";
 
 export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
@@ -38,9 +39,15 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
     typeof window !== "undefined" && r.takeout_code
       ? `${window.location.origin}/to/${r.slug}/${r.takeout_code}`
       : `/to/${r.slug}/${r.takeout_code}`;
-  const qrSrc = r.takeout_code
-    ? `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(takeoutUrl)}&size=320x320&margin=10`
-    : "";
+
+  async function downloadQr() {
+    if (!r.takeout_code) return;
+    const url = await qrDataUrl(takeoutUrl);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `takeout-qr-${r.slug}.png`;
+    a.click();
+  }
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
@@ -105,8 +112,7 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
           </CardHeader>
           {r.takeout_code ? (
             <CardBody className="text-center space-y-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={qrSrc} alt="Takeout QR" className="mx-auto w-56 h-56 bg-muted rounded" />
+              <QR value={takeoutUrl} size={280} className="mx-auto bg-white rounded" />
               <div className="text-xs text-muted break-all">{takeoutUrl}</div>
               <div className="flex gap-2 justify-center">
                 <a href={takeoutUrl} target="_blank" rel="noreferrer">
@@ -114,11 +120,9 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
                     <ExternalLink className="w-4 h-4" /> Preview
                   </Button>
                 </a>
-                <a href={qrSrc} target="_blank" rel="noreferrer">
-                  <Button variant="secondary" size="sm">
-                    <QrCode className="w-4 h-4" /> Open QR
-                  </Button>
-                </a>
+                <Button variant="secondary" size="sm" onClick={downloadQr}>
+                  <QrCode className="w-4 h-4" /> Download
+                </Button>
               </div>
             </CardBody>
           ) : (

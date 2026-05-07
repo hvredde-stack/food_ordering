@@ -5,6 +5,7 @@ import { Plus, Trash2, QrCode, ExternalLink } from "lucide-react";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { QR, qrDataUrl } from "@/components/ui/qr";
 import type { RestaurantTable } from "@/lib/types";
 
 export function TablesManager({
@@ -67,9 +68,12 @@ export function TablesManager({
     return `${window.location.origin}/t/${restaurantSlug}/${code}`;
   }
 
-  function qrSrc(t: RestaurantTable) {
-    const url = tableUrl(t);
-    return `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(url)}&size=300x300&margin=10`;
+  async function downloadQr(t: RestaurantTable) {
+    const url = await qrDataUrl(tableUrl(t));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `qr-${t.code}.png`;
+    a.click();
   }
 
   return (
@@ -109,19 +113,17 @@ export function TablesManager({
               <div className="text-xs text-muted">{t.seats} seats</div>
             </CardHeader>
             <CardBody className="text-center space-y-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={qrSrc(t)} alt={`QR for ${t.code}`} className="mx-auto w-40 h-40 bg-muted rounded" />
+              <QR value={tableUrl(t)} size={192} className="mx-auto bg-white rounded" />
+              <div className="text-xs text-muted break-all">{tableUrl(t)}</div>
               <div className="flex gap-2 justify-center">
                 <a href={tableUrl(t)} target="_blank" rel="noreferrer">
                   <Button variant="secondary" size="sm">
                     <ExternalLink className="w-4 h-4" /> Open
                   </Button>
                 </a>
-                <a href={qrSrc(t)} target="_blank" rel="noreferrer">
-                  <Button variant="secondary" size="sm">
-                    <QrCode className="w-4 h-4" /> QR
-                  </Button>
-                </a>
+                <Button variant="secondary" size="sm" onClick={() => downloadQr(t)}>
+                  <QrCode className="w-4 h-4" /> Download
+                </Button>
                 <Button variant="ghost" size="sm" onClick={() => remove(t.id)}>
                   <Trash2 className="w-4 h-4" />
                 </Button>
