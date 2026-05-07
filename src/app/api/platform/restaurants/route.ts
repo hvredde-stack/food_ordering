@@ -54,6 +54,11 @@ const PostBody = z.object({
   slug: z.string().min(2).max(40).regex(/^[a-z0-9-]+$/, "lowercase letters, digits, dashes only"),
   ownerEmail: z.string().email(),
   currency: z.string().length(3).optional(),
+  // Initial seeding so every URL works immediately after onboarding.
+  tableCount: z.number().int().min(0).max(50).optional(),
+  seatsPerTable: z.number().int().positive().max(20).optional(),
+  tableCodePrefix: z.string().max(8).optional(),
+  seedTapWater: z.boolean().optional(),
 });
 
 export async function POST(req: Request) {
@@ -62,7 +67,16 @@ export async function POST(req: Request) {
 
   const parsed = await parseJson(req, PostBody);
   if (!parsed.ok) return parsed.response;
-  const { name, slug, ownerEmail, currency } = parsed.data;
+  const {
+    name,
+    slug,
+    ownerEmail,
+    currency,
+    tableCount = 4,
+    seatsPerTable = 2,
+    tableCodePrefix = "T-",
+    seedTapWater = true,
+  } = parsed.data;
 
   // Look up Clerk user by email (must already exist).
   const cc = await clerkClient();
@@ -103,5 +117,46 @@ export async function POST(req: Request) {
     .single();
   if (error || !data) return serverError(error?.message ?? "Failed to create restaurant");
 
-  return NextResponse.json({ restaurant: data, owner: { id: ownerUserId, email: ownerEmail } }, { status: 201 });
+  const restaurantId = data.id as string;
+
+  // Seed tables: T-01 ... T-N (or whatever prefix the platform admin chose).
+  const seededTables: string[] = [];
+  if (tableCount > 0) {
+    const rows = Array.from({ length: tableCount }, (_, i) => {
+      const code = `${tableCodePrefix}${String(i + 1).padStart(2, "0")}`;
+      seededTables.push(code);
+      return {
+        restaurant_id: restaurantId,
+        code,
+        seats: seatsPerTable,
+      };
+    });
+    const { error: tErr } = await supabase.from("restaurant_tables").insert(rows);
+    if (tErr) {
+      // Roll back the restaurant — orphan tables aren't fatal but onboarding should be atomic.
+      await supabase.from("restaurants").delete().eq("id", restaurantId);
+      return serverError(`Failed to create tables: ${tErr.message}`);
+    }
+  }
+
+  // Seed a single starter dish so the menu page isn't empty for testing.
+  if (seedTapWater) {
+    await supabase.from("dishes").insert({
+      restaurant_id: restaurantId,
+      name: "Tap Water",
+      description: "Free with every meal.",
+      price_cents: 0,
+      available: true,
+      position: 0,
+    });
+  }
+
+  return NextResponse.json(
+    {
+      restaurant: data,
+      owner: { id: ownerUserId, email: ownerEmail },
+      seeded: { tables: seededTables, tapWater: seedTapWater },
+    },
+    { status: 201 }
+  );
 }
