@@ -1,11 +1,10 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { formatMoney, formatRelativeTime } from "@/lib/utils";
 import { RestaurantControls } from "./controls";
+import { UrlHub } from "./url-hub";
 
 export default async function PlatformRestaurantDetail({
   params,
@@ -22,7 +21,7 @@ export default async function PlatformRestaurantDetail({
   if (!restaurant) notFound();
 
   const since30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const [{ data: orders }, { data: sentiment }, { count: tableCount }, { count: dishCount }, { data: feedback }] =
+  const [{ data: orders }, { data: sentiment }, { data: tables }, { count: dishCount }, { data: feedback }] =
     await Promise.all([
       supabase
         .from("orders")
@@ -34,7 +33,11 @@ export default async function PlatformRestaurantDetail({
         .select("kind")
         .eq("restaurant_id", id)
         .gte("created_at", since30),
-      supabase.from("restaurant_tables").select("*", { count: "exact", head: true }).eq("restaurant_id", id),
+      supabase
+        .from("restaurant_tables")
+        .select("id, code, label, seats")
+        .eq("restaurant_id", id)
+        .order("code"),
       supabase.from("dishes").select("*", { count: "exact", head: true }).eq("restaurant_id", id),
       supabase
         .from("feedback")
@@ -43,6 +46,7 @@ export default async function PlatformRestaurantDetail({
         .order("created_at", { ascending: false })
         .limit(5),
     ]);
+  const tableCount = (tables ?? []).length;
 
   const live = (orders ?? []).filter((o) => o.status !== "cancelled");
   const dineIn = live.filter((o) => o.order_type === "dine-in");
@@ -117,29 +121,13 @@ export default async function PlatformRestaurantDetail({
         </Card>
       </div>
 
-      <Card>
-        <CardHeader><div className="font-semibold">Quick links</div></CardHeader>
-        <CardBody className="space-y-2 text-sm">
-          <a
-            href={`/t/${restaurant.slug}`}
-            target="_blank"
-            rel="noreferrer"
-            className="block px-3 py-2 rounded-lg hover:bg-muted"
-          >
-            Customer dine-in landing (table required) <ExternalLink className="inline w-3 h-3 ml-1" />
-          </a>
-          {restaurant.takeout_code && (
-            <a
-              href={`/to/${restaurant.slug}/${restaurant.takeout_code}`}
-              target="_blank"
-              rel="noreferrer"
-              className="block px-3 py-2 rounded-lg hover:bg-muted"
-            >
-              Customer takeout landing <ExternalLink className="inline w-3 h-3 ml-1" />
-            </a>
-          )}
-        </CardBody>
-      </Card>
+      <UrlHub
+        slug={restaurant.slug as string}
+        takeoutCode={(restaurant.takeout_code as string | null) ?? null}
+        dineInEnabled={(restaurant.dine_in_enabled as boolean) ?? true}
+        takeoutEnabled={(restaurant.takeout_enabled as boolean) ?? true}
+        tables={(tables ?? []) as { id: string; code: string; label: string | null; seats: number }[]}
+      />
     </div>
   );
 }
