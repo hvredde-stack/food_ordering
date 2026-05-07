@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardHeader } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
+import { Stat } from "@/components/ui/stat";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { formatMoney, formatRelativeTime } from "@/lib/utils";
 
@@ -25,23 +27,22 @@ export default async function PlatformOverview() {
   const suspended = (restaurants ?? []).filter((r) => r.status === "suspended").length;
 
   return (
-    <div className="max-w-6xl mx-auto p-8 space-y-8">
-      <div>
-        <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">Console</div>
-        <h1 className="font-display text-4xl md:text-5xl tracking-tight mt-3">Platform overview</h1>
-        <p className="text-muted mt-3 leading-relaxed max-w-xl">
-          Cross-tenant view of every restaurant on the platform.
-        </p>
-      </div>
+    <div className="max-w-6xl mx-auto p-6 md:p-10 space-y-10">
+      <PageHeader
+        eyebrow="Console"
+        title="Platform overview"
+        lede="Cross-tenant view of every restaurant on TapServe — onboarding pace, order volume, sentiment trends. The 30-day window resets nightly."
+      />
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Restaurants" value={`${active} active${suspended ? ` · ${suspended} suspended` : ""}`} />
-        <Stat label="Orders (30d)" value={totalOrders} />
-        <Stat label="Revenue (30d)" value={formatMoney(totalRevenue, "USD")} />
+      <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4 border border-border">
         <Stat
-          label="Sentiment (30d)"
-          value={`${happy} 🙂 · ${sad} ☹️`}
+          label="Restaurants"
+          value={active}
+          hint={suspended ? `${suspended} suspended` : "all active"}
         />
+        <Stat label="Orders · 30d" value={totalOrders.toLocaleString()} hint="cancelled excluded" />
+        <Stat label="Revenue · 30d" value={formatMoney(totalRevenue, "USD")} hint="USD across tenants" />
+        <Stat label="Sentiment · 30d" value={`${happy} / ${sad}`} hint="happy / sad" />
       </div>
 
       <Card>
@@ -91,13 +92,3 @@ export default async function PlatformOverview() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <Card>
-      <CardBody>
-        <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">{label}</div>
-        <div className="font-display text-3xl mt-2 tracking-tight">{value}</div>
-      </CardBody>
-    </Card>
-  );
-}

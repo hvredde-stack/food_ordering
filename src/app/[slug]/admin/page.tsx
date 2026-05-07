@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { getRestaurantAccess } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
+import { Stat } from "@/components/ui/stat";
 import { formatMoney } from "@/lib/utils";
 
 export default async function AdminOverview({
@@ -42,23 +44,26 @@ export default async function AdminOverview({
   const happy = (sentiment24h ?? []).filter((s) => s.kind === "happy").length;
   const sad   = (sentiment24h ?? []).filter((s) => s.kind === "sad").length;
 
+  const ordersCount = (orders24h ?? []).filter((o) => o.status !== "cancelled").length;
   return (
-    <div className="max-w-6xl mx-auto p-8 space-y-8">
-      <div>
-        <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">Overview</div>
-        <h1 className="font-display text-4xl md:text-5xl mt-3 tracking-tight">{restaurant.name}</h1>
-        <div className="font-mono text-xs text-muted mt-3 space-x-3">
-          <span>/{restaurant.slug}</span>
-          <span>·</span>
-          <span>{restaurant.currency}</span>
-        </div>
-      </div>
+    <div className="max-w-6xl mx-auto p-6 md:p-10 space-y-10">
+      <PageHeader
+        eyebrow="Overview"
+        title={restaurant.name}
+        lede={
+          <>
+            <span className="font-mono text-xs tracking-[0.14em]">/{restaurant.slug}</span>
+            <span className="mx-2 opacity-40">·</span>
+            <span className="font-mono text-xs tracking-[0.14em]">{restaurant.currency}</span>
+          </>
+        }
+      />
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Orders (24h)" value={(orders24h ?? []).filter((o) => o.status !== "cancelled").length} />
-        <Stat label="Revenue (24h)" value={formatMoney(totalRevenue, restaurant.currency)} />
-        <Stat label="Dishes" value={(dishes ?? []).length} />
-        <Stat label="Tables" value={(tables ?? []).length} />
+      <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4 border border-border">
+        <Stat label="Orders · 24h" value={ordersCount.toLocaleString()} hint="cancelled excluded" />
+        <Stat label="Revenue · 24h" value={formatMoney(totalRevenue, restaurant.currency)} hint={restaurant.currency} />
+        <Stat label="Dishes" value={(dishes ?? []).length} hint="on the menu" />
+        <Stat label="Tables" value={(tables ?? []).length} hint="active QR codes" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -88,17 +93,6 @@ export default async function AdminOverview({
         </Card>
       </div>
     </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <Card>
-      <CardBody>
-        <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">{label}</div>
-        <div className="font-display text-3xl mt-2 tracking-tight">{value}</div>
-      </CardBody>
-    </Card>
   );
 }
 

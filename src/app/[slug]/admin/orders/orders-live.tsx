@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ListOrdered } from "lucide-react";
 import { useClerkSupabaseClient } from "@/hooks/use-supabase";
 import { formatMoney, formatRelativeTime } from "@/lib/utils";
 import type { Order, OrderItem, RestaurantTable } from "@/lib/types";
@@ -47,16 +50,22 @@ export function OrdersLive({ restaurantId, currency }: Props) {
   }, [restaurantId, refresh, supabase]);
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold">Orders</h1>
-        <p className="text-sm text-muted">Live feed of orders across all tables.</p>
-      </div>
+    <div className="max-w-6xl mx-auto p-6 md:p-10 space-y-4">
+      <PageHeader
+        eyebrow="Service"
+        title="Live orders"
+        lede="Streaming feed of every order, across every table and the takeout queue. Updates in real time as the kitchen works through them."
+      />
 
       {loading ? (
-        <div className="text-muted">Loading…</div>
+        <div className="text-muted font-mono text-xs tracking-[0.18em] uppercase">Loading…</div>
       ) : orders.length === 0 ? (
-        <Card><CardBody className="text-center py-10 text-muted">No orders yet.</CardBody></Card>
+        <EmptyState
+          icon={<ListOrdered className="w-8 h-8" />}
+          eyebrow="Quiet for now"
+          title="No orders yet."
+          description="When a diner scans a table QR and submits an order, the ticket appears here within a second."
+        />
       ) : (
         <div className="grid gap-3">
           {orders.map((o) => (

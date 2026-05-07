@@ -5,6 +5,7 @@ import { RefreshCw, ShoppingBag, Utensils, ExternalLink, QrCode } from "lucide-r
 import { Card, CardBody, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { QR, qrDataUrl } from "@/components/ui/qr";
+import { PageHeader } from "@/components/ui/page-header";
 import type { Restaurant } from "@/lib/types";
 
 export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
@@ -37,8 +38,8 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
 
   const takeoutUrl =
     typeof window !== "undefined" && r.takeout_code
-      ? `${window.location.origin}/to/${r.slug}/${r.takeout_code}`
-      : `/to/${r.slug}/${r.takeout_code}`;
+      ? `${window.location.origin}/${r.slug}/to/${r.takeout_code}`
+      : `/${r.slug}/to/${r.takeout_code}`;
 
   async function downloadQr() {
     if (!r.takeout_code) return;
@@ -50,16 +51,18 @@ export function SettingsForm({ restaurant }: { restaurant: Restaurant }) {
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold">Settings</h1>
-          <p className="text-sm text-muted">Ordering modes and the master takeout QR.</p>
-        </div>
-        {flash && (
-          <div className="text-sm text-green-700 bg-green-50 px-3 py-1 rounded-md">{flash}</div>
+    <div className="max-w-3xl mx-auto p-6 md:p-10 space-y-6">
+      <PageHeader
+        eyebrow="Configuration"
+        title="Settings"
+        lede="Ordering modes (dine-in vs takeout) and the master takeout QR. Changes save instantly."
+        actions={flash && (
+          <div className="font-mono text-[10px] tracking-[0.18em] uppercase text-accent border-b border-accent pb-1">
+            {flash}
+          </div>
         )}
-      </div>
+      />
+
 
       <Card>
         <CardHeader>

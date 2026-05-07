@@ -5,6 +5,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PageHeader } from "@/components/ui/page-header";
 import { formatRelativeTime } from "@/lib/utils";
 import type { PlatformAdmin } from "@/lib/types";
 
@@ -59,13 +60,13 @@ export function AdminsList({
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Platform admins</h1>
-        <p className="text-sm text-muted">
-          Anyone in this list has cross-tenant access. Add users by their Clerk email.
-        </p>
-      </div>
+    <div className="max-w-3xl mx-auto p-6 md:p-10 space-y-6">
+      <PageHeader
+        eyebrow="Access"
+        title="Platform admins"
+        lede="Anyone in this list has cross-tenant access — they can view any restaurant's admin, kitchen, and analytics. Add by Clerk email."
+      />
+
 
       <Card>
         <CardHeader><div className="font-semibold">Invite admin</div></CardHeader>

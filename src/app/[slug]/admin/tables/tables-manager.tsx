@@ -6,6 +6,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { QR, qrDataUrl } from "@/components/ui/qr";
+import { PageHeader } from "@/components/ui/page-header";
 import type { RestaurantTable } from "@/lib/types";
 
 export function TablesManager({
@@ -64,8 +65,8 @@ export function TablesManager({
     // Encode the code so any characters (symbols, spaces, mixed case)
     // round-trip safely through the URL path.
     const code = encodeURIComponent(t.code);
-    if (typeof window === "undefined") return `/t/${restaurantSlug}/${code}`;
-    return `${window.location.origin}/t/${restaurantSlug}/${code}`;
+    if (typeof window === "undefined") return `/${restaurantSlug}/t/${code}`;
+    return `${window.location.origin}/${restaurantSlug}/t/${code}`;
   }
 
   async function downloadQr(t: RestaurantTable) {
@@ -77,13 +78,13 @@ export function TablesManager({
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Tables</h1>
-        <p className="text-sm text-muted">
-          Create a row per physical table. Print the QR — customers scan to start ordering, servers scan to clean.
-        </p>
-      </div>
+    <div className="max-w-5xl mx-auto p-6 md:p-10 space-y-6">
+      <PageHeader
+        eyebrow="Floor plan"
+        title="Tables & QR codes"
+        lede="One row per physical table. Print the QR and place it on the tabletop — diners scan to start ordering, servers scan to mark a table clean."
+      />
+
 
       <Card>
         <CardHeader><div className="font-semibold">Add a table</div></CardHeader>

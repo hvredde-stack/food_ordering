@@ -7,6 +7,7 @@ import {
 } from "recharts";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
 import { formatMoney } from "@/lib/utils";
 
 interface Analytics {
@@ -49,25 +50,26 @@ export function AnalyticsView({ currency }: { currency: string }) {
   }, [days]);
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
-      <div className="flex items-end justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold">Analytics</h1>
-          <p className="text-sm text-muted">Trends across your restaurant.</p>
-        </div>
-        <div className="flex gap-1">
-          {RANGES.map((r) => (
-            <Button
-              key={r.days}
-              size="sm"
-              variant={r.days === days ? "primary" : "secondary"}
-              onClick={() => setDays(r.days)}
-            >
-              {r.label}
-            </Button>
-          ))}
-        </div>
-      </div>
+    <div className="max-w-6xl mx-auto p-6 md:p-10 space-y-6">
+      <PageHeader
+        eyebrow="Reports"
+        title="Analytics"
+        lede="Peak hours, top dishes, sentiment, revenue. Pick a window and we'll show you what changed."
+        actions={
+          <div className="flex gap-1">
+            {RANGES.map((r) => (
+              <Button
+                key={r.days}
+                size="sm"
+                variant={r.days === days ? "primary" : "secondary"}
+                onClick={() => setDays(r.days)}
+              >
+                {r.label}
+              </Button>
+            ))}
+          </div>
+        }
+      />
 
       {loading || !data ? (
         <div className="text-muted">Loading…</div>
