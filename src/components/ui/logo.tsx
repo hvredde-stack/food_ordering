@@ -54,12 +54,17 @@ export function Logo({ variant = "dark", className, label = "TapServe" }: Props)
       <title>{label}</title>
       <rect x="3" y="5" width="70" height="70" rx="3" fill="none" stroke={markStroke} strokeWidth="2" />
       <rect x="26" y="28" width="24" height="24" rx="1.5" fill={markFill} />
+      {/* Cormorant Garamond italic — the fine-dining wordmark. Loaded in
+          src/app/layout.tsx via next/font; the var() reference picks it
+          up so the SVG `<text>` can resolve the same loaded family the
+          page CSS uses. Falls back to Georgia if the font hasn't paint-
+          loaded yet (FOUT, but the brass mark masks it). */}
       <text
         x="92"
-        y="56"
-        fontFamily="Fraunces, Georgia, ui-serif, serif"
-        fontSize="48"
-        fontWeight="400"
+        y="58"
+        fontFamily="var(--font-wordmark), 'Cormorant Garamond', Georgia, ui-serif, serif"
+        fontSize="52"
+        fontWeight="500"
         fontStyle="italic"
         letterSpacing="-0.5"
         fill={wordFill}

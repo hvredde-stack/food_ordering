@@ -4,5 +4,5 @@
   <desc>TapServe primary logo for dark surfaces — brass mark with ivory Fraunces italic wordmark.</desc>
   <rect x="3" y="5" width="70" height="70" rx="3" fill="none" stroke="#C9A76E" stroke-width="2"/>
   <rect x="26" y="28" width="24" height="24" rx="1.5" fill="#C9A76E"/>
-  <text x="92" y="56" font-family="Fraunces, Georgia, ui-serif, serif" font-size="48" font-weight="400" font-style="italic" letter-spacing="-0.5" fill="#F4E9D6">TapServe</text>
+  <text x="92" y="58" font-family="'Cormorant Garamond', Georgia, ui-serif, serif" font-size="52" font-weight="500" font-style="italic" letter-spacing="-0.5" fill="#F4E9D6">TapServe</text>
 </svg>

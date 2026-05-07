@@ -1,6 +1,6 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
+import { Fraunces, Inter, JetBrains_Mono, Cormorant_Garamond } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { SwRegister } from "@/components/sw-register";
 
@@ -11,6 +11,18 @@ const fraunces = Fraunces({
   style: ["normal", "italic"],
   display: "swap",
   variable: "--font-display",
+});
+
+// Wordmark-only — Cormorant Garamond italic, the fine-dining serif. Used
+// exclusively in the TapServe lockup; the rest of the product stays on
+// Fraunces. Loaded here (not as part of the Logo component) so the SVG
+// `<text>` element can resolve the family at render time.
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  style: ["italic"],
+  display: "swap",
+  variable: "--font-wordmark",
 });
 
 // Body — neutral, generous on size and line-height per editorial spec.
@@ -54,7 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <ClerkProvider>
       <html
         lang="en"
-        className={`${fraunces.variable} ${inter.variable} ${mono.variable}`}
+        className={`${fraunces.variable} ${cormorant.variable} ${inter.variable} ${mono.variable}`}
       >
         <body className="min-h-screen antialiased">
           {children}
