@@ -34,11 +34,14 @@ export async function POST(req: Request) {
   const supabase = getSupabaseAdmin();
   const { data: restaurant, error: rErr } = await supabase
     .from("restaurants")
-    .select("id, dine_in_enabled, takeout_enabled, takeout_code")
+    .select("id, dine_in_enabled, takeout_enabled, takeout_code, status")
     .eq("slug", body.restaurantSlug)
     .maybeSingle();
   if (rErr) return serverError(rErr.message);
   if (!restaurant) return notFound("Restaurant not found");
+  if (restaurant.status === "suspended") {
+    return forbidden("This restaurant is currently unavailable. Please check back later.");
+  }
 
   if (body.mode === "dine-in") {
     if (!restaurant.dine_in_enabled) return forbidden("Dine-in is currently disabled.");

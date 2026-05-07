@@ -13,4 +13,10 @@ export const env = {
   storageBucket: process.env.SUPABASE_STORAGE_BUCKET ?? "dish-images",
   sessionTtlSeconds: Number(process.env.CUSTOMER_SESSION_TTL_SECONDS ?? 1800),
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  // Comma-separated list of emails that are auto-granted platform admin
+  // on first sign-in. Server-side only — keeps the bootstrap simple.
+  platformAdminEmails: (process.env.PLATFORM_ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean),
 };

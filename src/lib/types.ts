@@ -19,8 +19,18 @@ export interface Restaurant {
   dine_in_enabled: boolean;
   takeout_enabled: boolean;
   takeout_code: string | null;
+  status: "active" | "suspended";
   created_at: string;
   updated_at: string;
+}
+
+export interface PlatformAdmin {
+  id: string;
+  user_id: string;
+  email: string | null;
+  display_name: string | null;
+  created_at: string;
+  invited_by_user_id: string | null;
 }
 
 export interface MenuCategory {

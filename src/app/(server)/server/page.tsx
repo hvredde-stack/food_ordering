@@ -12,6 +12,7 @@ export default async function ServerHome() {
     name: "My Restaurant",
     slug: `r-${userId.slice(-6).toLowerCase()}-${Date.now().toString(36).slice(-4)}`,
   });
+  if (!restaurant) redirect("/platform");
   const user = await currentUser();
   const displayName =
     user?.firstName ||

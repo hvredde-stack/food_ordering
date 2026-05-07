@@ -11,6 +11,8 @@ const isProtected = createRouteMatcher([
   "/api/kitchen(.*)",
   "/server(.*)",
   "/api/server(.*)",
+  "/platform(.*)",
+  "/api/platform(.*)",
 ]);
 
 const isPublicAuth = createRouteMatcher([

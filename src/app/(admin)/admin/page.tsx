@@ -15,6 +15,7 @@ export default async function AdminOverview() {
     name: "My Restaurant",
     slug: `r-${userId.slice(-6).toLowerCase()}-${Date.now().toString(36).slice(-4)}`,
   });
+  if (!restaurant) redirect("/platform");
 
   const supabase = getSupabaseAdmin();
   const sinceIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();

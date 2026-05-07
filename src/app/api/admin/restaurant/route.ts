@@ -2,6 +2,7 @@
 // PATCH /api/admin/restaurant — update name/slug/etc.
 
 import { z } from "zod";
+import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { json, parseJson, unauthorized, serverError } from "@/lib/api";
 import { ensureRestaurantForUser, getAdminContext } from "@/lib/auth";
@@ -20,6 +21,12 @@ export async function GET() {
     name: "My Restaurant",
     slug: `r-${slugify(userId).slice(0, 12)}-${Date.now().toString(36)}`,
   });
+  if (!restaurant) {
+    return NextResponse.json(
+      { error: "No restaurant linked to this account. Ask a platform admin to onboard you." },
+      { status: 404 }
+    );
+  }
   return json({ restaurant });
 }
 

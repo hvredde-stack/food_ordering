@@ -50,9 +50,24 @@ create table if not exists restaurants (
   takeout_enabled boolean not null default true,
   -- Master takeout code — used in /to/<slug>/<takeout_code> URL + master QR.
   takeout_code    text,
+  -- Platform admin can suspend a tenant; suspended restaurants block ordering.
+  status          text not null default 'active' check (status in ('active', 'suspended')),
   created_at      timestamptz not null default now(),
   updated_at      timestamptz not null default now()
 );
+create index if not exists restaurants_status_idx on restaurants(status);
+
+-- Platform admins (your company / SaaS staff). Onboard restaurants and see
+-- cross-tenant data. Bootstrapped from PLATFORM_ADMIN_EMAILS env var.
+create table if not exists platform_admins (
+  id            uuid primary key default gen_random_uuid(),
+  user_id       text unique not null,
+  email         text,
+  display_name  text,
+  created_at    timestamptz not null default now(),
+  invited_by_user_id text
+);
+create index if not exists platform_admins_user_idx on platform_admins(user_id);
 create index if not exists restaurants_owner_idx on restaurants(owner_user_id);
 create unique index if not exists restaurants_takeout_code_idx
   on restaurants(takeout_code) where takeout_code is not null;

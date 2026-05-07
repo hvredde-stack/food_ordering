@@ -11,5 +11,6 @@ export default async function KitchenIndex() {
     name: "My Restaurant",
     slug: `r-${userId.slice(-6).toLowerCase()}-${Date.now().toString(36).slice(-4)}`,
   });
+  if (!restaurant) redirect("/platform");
   redirect(`/kitchen/${restaurant.slug}`);
 }
