@@ -25,11 +25,16 @@ create table if not exists restaurant_staff (
   -- so the hot path is a fast point lookup.
   user_id         text,
   invited_by_user_id text not null,
-  created_at      timestamptz not null default now(),
-  -- One email may only be staff at one restaurant once. Combined with
-  -- the FK on_delete cascade, deleting a restaurant cleans up its team.
-  unique (restaurant_id, lower(email))
+  created_at      timestamptz not null default now()
 );
+
+-- One email may only be staff at one restaurant once. Has to be a unique
+-- INDEX rather than a table-level UNIQUE constraint because PG only
+-- supports plain column references inside UNIQUE — lower(email) needs an
+-- index. Combined with the FK on_delete cascade, deleting a restaurant
+-- cleans up its team.
+create unique index if not exists restaurant_staff_email_uniq
+  on restaurant_staff(restaurant_id, lower(email));
 
 create index if not exists restaurant_staff_user_idx
   on restaurant_staff(user_id) where user_id is not null;

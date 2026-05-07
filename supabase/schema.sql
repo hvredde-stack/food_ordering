@@ -210,9 +210,12 @@ create table if not exists restaurant_staff (
   email           text not null,
   user_id         text,
   invited_by_user_id text not null,
-  created_at      timestamptz not null default now(),
-  unique (restaurant_id, lower(email))
+  created_at      timestamptz not null default now()
 );
+-- UNIQUE on (restaurant_id, lower(email)) has to be an index, not a
+-- table-level constraint — PG only allows plain column refs in UNIQUE.
+create unique index if not exists restaurant_staff_email_uniq
+  on restaurant_staff(restaurant_id, lower(email));
 create index if not exists restaurant_staff_user_idx
   on restaurant_staff(user_id) where user_id is not null;
 create index if not exists restaurant_staff_restaurant_idx
