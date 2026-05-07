@@ -116,6 +116,7 @@ export default async function AdminOverview({
             <QuickLink href={`/${slug}/admin/orders`}   label="View live orders" />
             <QuickLink href={`/${slug}/admin/analytics`} label="See full analytics" />
             <QuickLink href={`/${slug}/kitchen`}        label="Open kitchen dashboard" external />
+            <QuickLink href={`/${slug}/server`}         label="Open waiter / server app" external />
             <QuickLink href={`/${slug}/t`}              label="Customer scan landing (preview)" external />
           </CardBody>
         </Card>
