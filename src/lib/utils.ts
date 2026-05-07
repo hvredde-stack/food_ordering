@@ -12,6 +12,23 @@ export function formatMoney(cents: number, currency = "USD"): string {
   }).format(cents / 100);
 }
 
+/**
+ * The currency symbol alone — for input prefixes where the locale-aware
+ * number portion is rendered separately. Falls back to the currency code
+ * itself if Intl can't extract a glyph.
+ */
+export function currencySymbol(currency = "USD"): string {
+  try {
+    const parts = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+    }).formatToParts(0);
+    return parts.find((p) => p.type === "currency")?.value ?? currency;
+  } catch {
+    return currency;
+  }
+}
+
 export function formatRelativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const s = Math.round(diff / 1000);

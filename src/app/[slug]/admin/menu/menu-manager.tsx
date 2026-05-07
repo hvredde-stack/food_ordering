@@ -9,7 +9,7 @@ import { DishImage } from "@/components/ui/dish-image";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { getSupabaseBrowser } from "@/lib/supabase/client";
-import { formatMoney } from "@/lib/utils";
+import { formatMoney, currencySymbol } from "@/lib/utils";
 import { PRICE_UNIT_LABELS, PRICE_UNIT_SHORT } from "@/lib/weight";
 import type { Dish, MenuCategory, PriceUnit } from "@/lib/types";
 
@@ -421,17 +421,31 @@ function DishEditor({
           <Textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="text-xs text-muted">Price (cents)</span>
-              <Input
-                type="number"
-                min={0}
-                value={priceCents}
-                onChange={(e) => setPriceCents(Number(e.target.value))}
-                className="mt-1"
-              />
-              <span className="text-xs text-muted font-mono">
-                = {formatMoney(priceCents, currency)}
-                <span className="opacity-70">{PRICE_UNIT_SHORT[priceUnit]}</span>
+              <span className="text-xs text-muted">Price</span>
+              <div className="mt-1 relative">
+                {/* Currency prefix derived from the restaurant's currency
+                    so a CAD restaurant doesn't see a USD-stamped input.
+                    Stays $ for the common cases (USD/CAD/AUD/etc). */}
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-sm font-mono pointer-events-none">
+                  {currencySymbol(currency)}
+                </span>
+                <Input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  placeholder="0.00"
+                  value={priceCents === 0 ? "" : (priceCents / 100).toString()}
+                  onChange={(e) => {
+                    const dollars = parseFloat(e.target.value);
+                    // Round to integer cents — accepts 12.45, ignores
+                    // sub-cent precision the database can't store anyway.
+                    setPriceCents(isNaN(dollars) ? 0 : Math.round(dollars * 100));
+                  }}
+                  className="pl-7"
+                />
+              </div>
+              <span className="text-xs text-muted font-mono mt-1 inline-block">
+                {priceUnit === "each" ? "per item" : `per ${priceUnit}`}
               </span>
             </label>
             <label className="block">
