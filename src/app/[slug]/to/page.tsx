@@ -40,13 +40,13 @@ export default async function TakeoutLanding({
   return (
     <Centered>
       <div className="font-mono text-[11px] tracking-[0.22em] uppercase text-muted">
-        {restaurant.name as string}
+        Takeout from
       </div>
       <h1
-        className="font-display font-light mt-6 leading-[0.95] tracking-[-0.02em]"
-        style={{ fontSize: "clamp(48px, 8vw, 96px)" }}
+        className="font-display font-light mt-5 leading-[0.95] tracking-tight text-balance break-words"
+        style={{ fontSize: "clamp(36px, 7vw, 72px)" }}
       >
-        Takeout
+        {restaurant.name as string}
       </h1>
 
       {restaurant.takeout_enabled ? (

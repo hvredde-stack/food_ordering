@@ -31,10 +31,13 @@ export default async function TakeoutPage({ params }: { params: Promise<Params> 
       <div className="max-w-md mx-auto px-6 py-12 w-full">
         <div className="text-center">
           <div className="font-mono text-[11px] tracking-[0.22em] uppercase text-muted">
-            {restaurant.name as string}
+            Takeout from
           </div>
-          <h1 className="font-display text-5xl md:text-6xl mt-6 leading-[0.95] tracking-tight">
-            Takeout
+          <h1
+            className="font-display font-light mt-5 leading-[0.95] tracking-tight text-balance break-words"
+            style={{ fontSize: "clamp(32px, 6.5vw, 64px)" }}
+          >
+            {restaurant.name as string}
           </h1>
           <p className="mt-6 text-base leading-relaxed text-muted">
             Enter your name to start ordering for pickup.
