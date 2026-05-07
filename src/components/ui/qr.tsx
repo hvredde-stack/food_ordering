@@ -15,21 +15,25 @@ interface Props {
   alt?: string;
 }
 
-export function QR({ value, size = 240, className, alt = "QR code" }: Props) {
+// Default options tuned for on-screen scanning by phone cameras.
+//   - errorCorrectionLevel "M" (~15%): keeps the QR sparse, so each module
+//     stays large enough at small display sizes. We don't need "H" for
+//     digital display — that's for damaged printed media.
+//   - margin 4: the quiet zone every QR scanner needs to find the code.
+//   - width 1024: high source resolution so it stays crisp when scaled.
+const QR_OPTS = {
+  errorCorrectionLevel: "M" as const,
+  margin: 4,
+  width: 1024,
+  color: { dark: "#000000", light: "#ffffff" },
+};
+
+export function QR({ value, size = 280, className, alt = "QR code" }: Props) {
   const [dataUrl, setDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    QRCode.toDataURL(value, {
-      // 'H' = highest error correction (~30%), so the QR scans even when
-      // partially obscured or printed on imperfect paper.
-      errorCorrectionLevel: "H",
-      // 4 modules of quiet zone — required for most camera scanners.
-      margin: 4,
-      // Render at a high pixel density so on-screen and printed scans are crisp.
-      width: 1024,
-      color: { dark: "#000000", light: "#ffffff" },
-    })
+    QRCode.toDataURL(value, QR_OPTS)
       .then((url) => { if (!cancelled) setDataUrl(url); })
       .catch(() => { if (!cancelled) setDataUrl(null); });
     return () => { cancelled = true; };
@@ -51,19 +55,17 @@ export function QR({ value, size = 240, className, alt = "QR code" }: Props) {
       width={size}
       height={size}
       className={className}
-      style={{ imageRendering: "pixelated" }}
     />
   );
 }
 
 /**
  * Returns a data URL for the QR. Used when we want a downloadable PNG link.
+ * Uses higher error correction since the result is meant to be printed.
  */
 export async function qrDataUrl(value: string): Promise<string> {
   return QRCode.toDataURL(value, {
-    errorCorrectionLevel: "H",
-    margin: 4,
-    width: 1024,
-    color: { dark: "#000000", light: "#ffffff" },
+    ...QR_OPTS,
+    errorCorrectionLevel: "H", // ~30% — robust against print imperfections.
   });
 }
