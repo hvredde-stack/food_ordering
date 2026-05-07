@@ -107,13 +107,20 @@ export async function getActiveSession(): Promise<CustomerSession | null> {
     .from("customer_sessions")
     .update({ last_active_at: new Date().toISOString(), expires_at: newExpiry })
     .eq("id", session.id);
-  jar.set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: env.sessionTtlSeconds,
-  });
+  // Refresh the cookie's own expiry so it tracks the DB row. Server
+  // Components can't mutate cookies in Next 15+ — that's fine, the cookie
+  // gets re-set whenever an API route runs (POST orders, sentiment, etc.).
+  try {
+    jar.set(SESSION_COOKIE, token, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: env.sessionTtlSeconds,
+    });
+  } catch {
+    // Read-only cookie context (server component render). Skip silently.
+  }
   return { ...session, expires_at: newExpiry };
 }
 
