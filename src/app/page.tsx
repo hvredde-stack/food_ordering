@@ -135,22 +135,22 @@ export default function Home() {
                 no="01"
                 title="Register your restaurant"
                 desc="Sign up with your email. Tell us your restaurant's name and how many tables you have. We auto-generate everything else — slug, takeout code, table QR codes."
-                src="https://images.unsplash.com/photo-1551218808-94e220e084d2?w=900&h=675&fit=crop&q=85&auto=format"
-                alt="A pair of hands working in a warm, low-lit kitchen"
+                src="https://images.unsplash.com/photo-1573767898662-5715cd18612d?w=900&h=675&fit=crop&q=85&auto=format"
+                alt="A warmly lit restaurant interior with a welcoming Open sign — your place, ready to receive its first orders"
               />
               <Step
                 no="02"
                 title="Add your menu"
                 desc="Categories, dishes, prices, descriptions, photos. Edit anytime. Customers see updates instantly. We even pre-fill iconography for famous dishes."
-                src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=900&h=675&fit=crop&q=85&auto=format"
-                alt="A composed dish photographed on a dark surface"
+                src="https://images.unsplash.com/photo-1516749396351-ab12ad535d7c?w=900&h=675&fit=crop&q=85&auto=format"
+                alt="An overhead flat lay of multiple dishes spread across a wooden table — a menu's worth of plates"
               />
               <Step
                 no="03"
                 title="Print your QR codes & open"
                 desc="Each table gets its own QR code. There's a master QR for takeout. Customers scan, order, pay at the table. Kitchen sees the ticket within a second."
-                src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=900&h=675&fit=crop&q=85&auto=format"
-                alt="An overhead view of a beautifully plated table setting"
+                src="https://images.unsplash.com/photo-1726064855881-3bbb7000b29f?w=900&h=675&fit=crop&q=85&auto=format"
+                alt="A diner holding a phone over a plated dish — the moment they scan to order"
               />
             </div>
           </div>
