@@ -3,38 +3,21 @@
 @tailwind utilities;
 
 /*
- * "Linen" palette — soft camel, warm cream, warm brown ink.
- * Seven values total. The only "color" moments come from product
- * photography itself.
+ * "Maison" — dim restaurant interior. Warm walnut surfaces, candlelit
+ * ivory type, brass accents. Reads like sitting in a dim dining room.
+ *
+ * The whole site is intentionally dark; we don't flip on light mode.
  */
 :root {
-  --bg:           252 248 241;   /* #FCF8F1 — warm cream, never pure white */
-  --bg-alt:       236 226 206;   /* #ECE2CE — surface */
-  --bg-warm:      244 236 218;   /* #F4ECDA — between bg and bg-alt for editorial section */
-  --fg:            74  66  57;   /* #4A4239 — warm dark brown ink */
-  --muted:        168 160 146;   /* #A8A092 — captions / meta */
-  --card:         252 248 241;   /* same as bg; cards rely on hairline border, not surface contrast */
-  --border:       226 213 186;   /* #E2D5BA — hairlines */
-  --accent:       184 152 120;   /* #B89878 — soft camel */
-  --accent-2:     142 111  79;   /* #8E6F4F — accent deep, italic emphasis + hover */
-}
-
-/*
- * Optional dark mode keeps the same warmth but inverts background/ink.
- * Same seven values, recoded.
- */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg:            34  29  24;
-    --bg-alt:        47  40  31;
-    --bg-warm:       40  34  27;
-    --fg:           236 226 206;
-    --muted:        140 132 118;
-    --card:          34  29  24;
-    --border:        70  60  47;
-    --accent:       184 152 120;
-    --accent-2:     202 174 138;
-  }
+  --bg:            26  20  16;   /* #1A1410 — deep warm walnut */
+  --bg-alt:        35  28  22;   /* #231C16 — lifted surface (tabletop) */
+  --bg-warm:       42  32  24;   /* #2A2018 — warmer pocket (candle area) */
+  --card:          35  28  22;   /* same as bg-alt; hairline carries the surface */
+  --fg:           244 233 214;   /* #F4E9D6 — warm ivory, candlelit linen */
+  --muted:        168 149 128;   /* #A89580 — dimmed brass */
+  --border:        58  46  34;   /* #3A2E22 — warm bronze hairline */
+  --accent:       201 167 110;   /* #C9A76E — brass / champagne */
+  --accent-2:     180 138  85;   /* #B48A55 — deeper bronze (italic emphasis, hover) */
 }
 
 html, body {
@@ -49,24 +32,30 @@ body {
   line-height: 1.65;
   position: relative;
   font-feature-settings: "ss01", "cv05", "cv11";
+  /*
+   * Ambient candlelight — a barely-visible warm radial behind everything.
+   * Pinned to a fixed position so scrolling reveals it gradually like a
+   * lamp behind the page.
+   */
+  background-image:
+    radial-gradient(ellipse 80% 50% at 30% 0%, rgba(201, 167, 110, 0.06), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 80%, rgba(184, 138, 85, 0.05), transparent 60%);
+  background-attachment: fixed;
 }
 
-/* Editorial type — Fraunces 300 + selective italic emphasis. */
 h1, h2, h3, .font-display {
   font-family: var(--font-display), Georgia, serif;
   font-weight: 300;
   letter-spacing: -0.02em;
 }
 
-/* Mono accents — prices, codes, "01 / SS26". Used sparingly. */
 .font-mono, code, kbd, samp {
   font-family: var(--font-mono), ui-monospace, "SF Mono", Menlo, monospace;
   font-weight: 400;
 }
 
 /*
- * Editorial nav — caps, lettered, breathing. Underline animates from left.
- * 350ms easing matches site-wide cubic-bezier(.2,.8,.2,1).
+ * Editorial nav — caps, lettered, breathing. Underline grows from left.
  */
 .nav-link {
   font-family: var(--font-sans), sans-serif;
@@ -78,7 +67,7 @@ h1, h2, h3, .font-display {
   color: rgb(var(--fg));
   transition: color 350ms cubic-bezier(.2,.8,.2,1);
 }
-.nav-link:hover { color: rgb(var(--accent-2)); }
+.nav-link:hover { color: rgb(var(--accent)); }
 .nav-link::after {
   content: "";
   position: absolute;
@@ -94,7 +83,7 @@ h1, h2, h3, .font-display {
   width: 100%;
 }
 
-/* Editorial text-link CTA: bottom hairline + arrow, no button chrome. */
+/* Editorial text-link CTA: hairline + arrow, no chrome. */
 .text-link {
   display: inline-flex;
   align-items: center;
@@ -106,14 +95,12 @@ h1, h2, h3, .font-display {
   transition: color 350ms cubic-bezier(.2,.8,.2,1), border-color 350ms cubic-bezier(.2,.8,.2,1);
 }
 .text-link:hover {
-  color: rgb(var(--accent-2));
-  border-color: rgb(var(--accent-2));
+  color: rgb(var(--accent));
+  border-color: rgb(var(--accent));
 }
 
 /*
- * Page-load stagger reveal. Apply .reveal to elements; they start
- * 24px below + transparent, then settle into position.
- * Delay variants 1/2/3/4 cascade 100/300/500/700ms.
+ * Page-load stagger reveal. Cascade 100/300/500/700/900ms.
  */
 @media (prefers-reduced-motion: no-preference) {
   .reveal {
@@ -129,12 +116,75 @@ h1, h2, h3, .font-display {
   @keyframes reveal {
     to { opacity: 1; transform: translateY(0); }
   }
+
+  /*
+   * Scroll-triggered reveal — applied via the .observe class. Default
+   * state hidden; .visible (added by IntersectionObserver) animates in.
+   */
+  .observe {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 900ms cubic-bezier(.2,.8,.2,1), transform 900ms cubic-bezier(.2,.8,.2,1);
+  }
+  .observe.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  /* Stagger children of an .observe-stagger when their parent enters view. */
+  .observe-stagger > * { opacity: 0; transform: translateY(28px); transition: opacity 900ms cubic-bezier(.2,.8,.2,1), transform 900ms cubic-bezier(.2,.8,.2,1); }
+  .observe-stagger.visible > *:nth-child(1) { opacity: 1; transform: translateY(0); transition-delay: 0ms; }
+  .observe-stagger.visible > *:nth-child(2) { opacity: 1; transform: translateY(0); transition-delay: 120ms; }
+  .observe-stagger.visible > *:nth-child(3) { opacity: 1; transform: translateY(0); transition-delay: 240ms; }
+  .observe-stagger.visible > *:nth-child(4) { opacity: 1; transform: translateY(0); transition-delay: 360ms; }
+  .observe-stagger.visible > *:nth-child(5) { opacity: 1; transform: translateY(0); transition-delay: 480ms; }
+  .observe-stagger.visible > *:nth-child(6) { opacity: 1; transform: translateY(0); transition-delay: 600ms; }
 }
 
 /*
- * Barely-perceptible noise overlay for printed-editorial feel.
- * Position fixed so it never scrolls; pointer-events none so it
- * never intercepts. SVG inlined as a data URI.
+ * Subtle "lift" on interactive cards — a brass-tinted hairline glow on
+ * hover. Replaces drop shadows (which read as cheap on dark themes).
+ */
+.card-lift {
+  transition:
+    transform 450ms cubic-bezier(.2,.8,.2,1),
+    border-color 450ms cubic-bezier(.2,.8,.2,1),
+    background-color 450ms cubic-bezier(.2,.8,.2,1);
+}
+.card-lift:hover {
+  transform: translateY(-2px);
+  border-color: rgb(var(--accent) / 0.5);
+  background-color: rgb(var(--bg-warm));
+}
+
+/*
+ * Brass shimmer on the primary button — a slow gradient sweep that
+ * subliminally moves on hover. Restrained: full cycle is 2.5s.
+ */
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shimmer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgb(var(--accent) / 0.35) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  transition: transform 1100ms cubic-bezier(.2,.8,.2,1);
+  pointer-events: none;
+}
+.btn-shimmer:hover::before {
+  transform: translateX(100%);
+}
+
+/*
+ * Faint film-grain noise. Slightly higher opacity on dark surfaces so
+ * the texture reads. Pointer-events:none so it never intercepts clicks.
  */
 body::after {
   content: "";
@@ -142,14 +192,26 @@ body::after {
   inset: 0;
   pointer-events: none;
   z-index: 1;
-  opacity: 0.04;
+  opacity: 0.06;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.7'/></svg>");
 }
-/* App content sits above the noise overlay. */
 body > * { position: relative; z-index: 2; }
 
-/* Focus-visible — meets the 2px solid ink + 4px offset spec. */
+/* Selection styled with brass accent. */
+::selection { background: rgb(var(--accent) / 0.4); color: rgb(var(--fg)); }
+
+/* Focus-visible — brass outline on dark feels like a copper edge. */
 *:focus-visible {
-  outline: 2px solid rgb(var(--fg));
+  outline: 2px solid rgb(var(--accent));
   outline-offset: 4px;
 }
+
+/* Scrollbar — warm, subtle. */
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: rgb(var(--bg)); }
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--border));
+  border: 3px solid rgb(var(--bg));
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--accent-2)); }

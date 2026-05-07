@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { ArrowUpRight, ScanLine, ChefHat, BarChart3, Utensils } from "lucide-react";
+import { ScrollRevealInit } from "@/components/scroll-reveal-init";
 
 // Public marketing landing. Where ads, social posts, and word-of-mouth land.
 // Calm, editorial, one clear CTA per section. Sign-up flow is the goal.
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
+      <ScrollRevealInit />
       {/* Thin nav, transparent on hero, hairline border. */}
       <header className="sticky top-0 z-30 backdrop-blur-md bg-bg/85 border-b border-border/70">
         <nav className="max-w-[1400px] mx-auto px-[clamp(20px,5vw,60px)] h-[68px] flex items-center justify-between">
@@ -94,7 +96,7 @@ export default function Home() {
         {/* How it works — three steps. */}
         <section className="bg-bg-warm border-t border-border">
           <div className="max-w-[1400px] mx-auto px-[clamp(20px,5vw,60px)] py-24 md:py-32">
-            <div className="max-w-2xl">
+            <div className="max-w-2xl observe">
               <div className="font-mono text-[11px] tracking-[0.22em] uppercase text-muted">
                 How it works
               </div>
@@ -106,7 +108,7 @@ export default function Home() {
               </h2>
             </div>
 
-            <div className="mt-16 grid md:grid-cols-3 gap-12 md:gap-8">
+            <div className="mt-16 grid md:grid-cols-3 gap-12 md:gap-8 observe-stagger observe">
               <Step
                 no="01"
                 title="Register your restaurant"
@@ -129,7 +131,7 @@ export default function Home() {
         {/* Features grid */}
         <section className="border-t border-border">
           <div className="max-w-[1400px] mx-auto px-[clamp(20px,5vw,60px)] py-24 md:py-32">
-            <div className="grid md:grid-cols-[1fr,1.4fr] gap-12 md:gap-20 items-start">
+            <div className="grid md:grid-cols-[1fr,1.4fr] gap-12 md:gap-20 items-start observe">
               <div>
                 <div className="font-mono text-[11px] tracking-[0.22em] uppercase text-muted">
                   What you get
@@ -146,7 +148,7 @@ export default function Home() {
                 </p>
               </div>
 
-              <div className="md:pl-8 grid sm:grid-cols-2 gap-x-12 gap-y-12">
+              <div className="md:pl-8 grid sm:grid-cols-2 gap-x-12 gap-y-12 observe-stagger observe">
                 <Feature
                   icon={<ScanLine className="w-5 h-5" />}
                   title="Customers scan & order"
@@ -174,7 +176,7 @@ export default function Home() {
 
         {/* Closing CTA */}
         <section className="border-t border-border bg-bg-warm">
-          <div className="max-w-[1400px] mx-auto px-[clamp(20px,5vw,60px)] py-24 md:py-32 text-center">
+          <div className="max-w-[1400px] mx-auto px-[clamp(20px,5vw,60px)] py-24 md:py-32 text-center observe">
             <div className="font-mono text-[11px] tracking-[0.22em] uppercase text-muted">
               Ready when you are
             </div>
