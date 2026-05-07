@@ -32,11 +32,15 @@ export default async function PlatformRestaurantsList() {
     <div className="max-w-6xl mx-auto p-6 space-y-4">
       <div className="flex items-end justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold">Restaurants</h1>
-          <p className="text-sm text-muted">{(restaurants ?? []).length} on the platform.</p>
+          <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">Directory</div>
+          <h1 className="font-display text-4xl md:text-5xl mt-3 tracking-tight">Restaurants</h1>
+          <p className="font-mono text-xs text-muted mt-2">{(restaurants ?? []).length} tenants on the platform</p>
         </div>
         <Link href="/platform/restaurants/new">
-          <Button><Plus className="w-4 h-4" /> Onboard restaurant</Button>
+          <Button>
+            <Plus className="w-4 h-4" />
+            <span className="font-mono text-[11px] tracking-[0.14em] uppercase">Onboard restaurant</span>
+          </Button>
         </Link>
       </div>
 

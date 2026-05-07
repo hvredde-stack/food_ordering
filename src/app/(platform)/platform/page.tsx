@@ -25,10 +25,13 @@ export default async function PlatformOverview() {
   const suspended = (restaurants ?? []).filter((r) => r.status === "suspended").length;
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
+    <div className="max-w-6xl mx-auto p-8 space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Platform overview</h1>
-        <p className="text-sm text-muted">Cross-tenant view of every restaurant on the platform.</p>
+        <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">Console</div>
+        <h1 className="font-display text-4xl md:text-5xl tracking-tight mt-3">Platform overview</h1>
+        <p className="text-muted mt-3 leading-relaxed max-w-xl">
+          Cross-tenant view of every restaurant on the platform.
+        </p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -92,8 +95,8 @@ function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <Card>
       <CardBody>
-        <div className="text-xs uppercase tracking-wider text-muted">{label}</div>
-        <div className="text-2xl font-bold mt-1">{value}</div>
+        <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">{label}</div>
+        <div className="font-display text-3xl mt-2 tracking-tight">{value}</div>
       </CardBody>
     </Card>
   );

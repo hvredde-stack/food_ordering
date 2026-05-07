@@ -60,12 +60,16 @@ export default async function PlatformRestaurantDetail({
     <div className="max-w-5xl mx-auto p-6 space-y-6">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <Link href="/platform/restaurants" className="text-sm text-muted underline">← All restaurants</Link>
-          <h1 className="text-2xl font-bold mt-1">{restaurant.name as string}</h1>
-          <div className="text-sm text-muted">
-            slug <code className="text-xs px-1.5 py-0.5 rounded bg-muted">{restaurant.slug as string}</code>
-            {" · "}joined {formatRelativeTime(restaurant.created_at as string)}
-            {" · "}owner <code className="text-xs">{restaurant.owner_user_id as string}</code>
+          <Link href="/platform/restaurants" className="font-mono text-[11px] tracking-[0.18em] uppercase text-muted hover:text-fg transition">
+            ← All restaurants
+          </Link>
+          <h1 className="font-display text-4xl md:text-5xl mt-3 tracking-tight">{restaurant.name as string}</h1>
+          <div className="font-mono text-xs text-muted mt-3 space-x-4">
+            <span>/{restaurant.slug as string}</span>
+            <span>·</span>
+            <span>Joined {formatRelativeTime(restaurant.created_at as string).replace(" ago", "")}</span>
+            <span>·</span>
+            <span className="opacity-70">{restaurant.owner_user_id as string}</span>
           </div>
         </div>
         <RestaurantControls
@@ -136,8 +140,8 @@ function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <Card>
       <CardBody>
-        <div className="text-xs uppercase tracking-wider text-muted">{label}</div>
-        <div className="text-2xl font-bold mt-1">{value}</div>
+        <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">{label}</div>
+        <div className="font-display text-3xl mt-2 tracking-tight">{value}</div>
       </CardBody>
     </Card>
   );

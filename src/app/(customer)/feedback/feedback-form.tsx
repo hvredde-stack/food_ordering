@@ -39,18 +39,23 @@ export function FeedbackForm() {
 
   if (done) {
     return (
-      <div className="max-w-md mx-auto px-5 py-16 text-center">
-        <div className="text-5xl">🙏</div>
-        <h1 className="mt-4 text-2xl font-bold">Thanks for your feedback!</h1>
-        <p className="text-muted mt-2">Have a great day.</p>
+      <div className="max-w-md mx-auto px-6 py-20 text-center">
+        <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">Submitted</div>
+        <h1 className="mt-6 font-display text-5xl tracking-tight">
+          Thank you<span className="italic font-light">.</span>
+        </h1>
+        <p className="text-muted mt-4 leading-relaxed">Have a great day.</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-md mx-auto px-5 py-10">
-      <h1 className="text-2xl font-bold text-center">How was your visit?</h1>
-      <p className="text-muted text-center mt-1">Tell us how we did.</p>
+    <div className="max-w-md mx-auto px-6 py-12">
+      <div className="text-center">
+        <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">Feedback</div>
+        <h1 className="font-display text-4xl md:text-5xl tracking-tight mt-4">How was your visit?</h1>
+        <p className="text-muted mt-3 leading-relaxed">Tell us how we did.</p>
+      </div>
 
       <Card className="mt-6">
         <CardBody className="space-y-4">

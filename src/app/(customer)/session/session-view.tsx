@@ -58,13 +58,15 @@ export function SessionView({
   );
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-5">
-      <header className="mb-4">
-        <div className="text-xs uppercase tracking-wider text-muted">{restaurantName}</div>
-        <div className="flex items-baseline justify-between gap-2 mt-1">
-          <h1 className="text-2xl font-bold">{scopeLabel}</h1>
+    <div className="max-w-2xl mx-auto px-5 py-6">
+      <header className="mb-6">
+        <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">{restaurantName}</div>
+        <div className="flex items-baseline justify-between gap-3 mt-2">
+          <h1 className="font-display text-4xl tracking-tight">{scopeLabel}</h1>
           {meCustomerName && (
-            <div className="text-sm text-muted">You: <span className="text-fg font-medium">{meCustomerName}</span></div>
+            <div className="font-mono text-[11px] tracking-[0.18em] uppercase text-muted">
+              You · <span className="text-fg">{meCustomerName}</span>
+            </div>
           )}
         </div>
       </header>
@@ -124,10 +126,10 @@ function Stat({ icon, label, value }: { icon?: React.ReactNode; label: string; v
   return (
     <Card>
       <CardBody className="p-3">
-        <div className="text-[10px] uppercase tracking-wider text-muted flex items-center gap-1">
+        <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted flex items-center gap-1">
           {icon} {label}
         </div>
-        <div className="text-base font-bold mt-0.5">{value}</div>
+        <div className="font-display text-lg mt-1 tracking-tight">{value}</div>
       </CardBody>
     </Card>
   );
@@ -138,11 +140,11 @@ function OrderCard({ order, currency, isYou }: { order: OrderRow; currency: stri
     <Card className={cn(isYou && "ring-2 ring-accent")}>
       <CardHeader className="flex justify-between items-center">
         <div>
-          <div className="font-semibold flex items-center gap-2">
+          <div className="font-display text-lg flex items-center gap-2">
             {order.customer_name ?? "Guest"}
-            {isYou && <span className="text-[10px] uppercase tracking-wider bg-accent text-bg px-1.5 py-0.5 rounded">you</span>}
+            {isYou && <span className="font-mono text-[10px] uppercase tracking-[0.18em] bg-accent text-bg px-1.5 py-0.5 rounded">you</span>}
           </div>
-          <div className="text-xs text-muted">
+          <div className="text-xs text-muted font-mono mt-0.5">
             <Clock className="w-3 h-3 inline mr-0.5" />
             {formatRelativeTime(order.created_at)}
           </div>
@@ -166,9 +168,9 @@ function OrderCard({ order, currency, isYou }: { order: OrderRow; currency: stri
           </div>
         ))}
       </div>
-      <CardBody className="flex justify-between items-center text-sm border-t border-border">
-        <span className="text-muted">Subtotal</span>
-        <span className="font-semibold">{formatMoney(order.total_cents, currency)}</span>
+      <CardBody className="flex justify-between items-baseline text-sm border-t border-border">
+        <span className="font-mono text-[10px] tracking-[0.18em] uppercase text-muted">Subtotal</span>
+        <span className="font-mono tabular-nums">{formatMoney(order.total_cents, currency)}</span>
       </CardBody>
     </Card>
   );

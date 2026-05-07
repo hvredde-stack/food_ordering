@@ -2,6 +2,7 @@ import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
 import { LayoutDashboard, UtensilsCrossed, ListOrdered, BarChart3, Table2, Settings } from "lucide-react";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 const NAV = [
   { href: "/admin",           label: "Overview",  icon: LayoutDashboard },
@@ -14,46 +15,65 @@ const NAV = [
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const { userId } = await auth();
-  // Sign-in/up pages render outside this layout because middleware allows them.
-  // If a user lands here without auth, middleware has already redirected.
   if (!userId) return <>{children}</>;
+
+  // Look up the restaurant name once for the sidebar wordmark.
+  const supabase = getSupabaseAdmin();
+  const { data: restaurant } = await supabase
+    .from("restaurants")
+    .select("name, slug")
+    .eq("owner_user_id", userId)
+    .maybeSingle();
+  const tenantName = (restaurant?.name as string | undefined) ?? "Admin";
 
   return (
     <div className="min-h-screen flex">
-      <aside className="hidden md:flex md:w-60 flex-col border-r border-border bg-card">
-        <div className="p-4 border-b border-border">
-          <div className="text-xs uppercase tracking-wider text-muted">Admin</div>
-          <div className="font-semibold">Food Ordering</div>
+      <aside className="hidden md:flex md:w-64 flex-col border-r border-border bg-card">
+        <div className="p-6 border-b border-border">
+          <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted leading-none">
+            Restaurant
+          </div>
+          <div className="font-display text-xl mt-2 tracking-tight leading-tight truncate">
+            {tenantName}
+          </div>
+          {restaurant?.slug && (
+            <div className="font-mono text-[10px] text-muted mt-2 truncate">/{restaurant.slug as string}</div>
+          )}
         </div>
-        <nav className="flex-1 p-2 space-y-1">
+        <nav className="flex-1 p-3 space-y-0.5">
           {NAV.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-muted"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-bg-alt transition"
             >
-              <Icon className="w-4 h-4" /> {label}
+              <Icon className="w-4 h-4 text-muted" />
+              <span className="font-mono text-xs tracking-[0.14em] uppercase">{label}</span>
             </Link>
           ))}
         </nav>
-        <div className="p-3 border-t border-border flex items-center justify-between">
+        <div className="p-4 border-t border-border flex items-center justify-between">
           <UserButton />
         </div>
       </aside>
 
       <main className="flex-1 min-w-0">
-        <div className="md:hidden border-b border-border bg-card flex items-center justify-between px-4 py-3">
-          <div className="font-semibold">Admin</div>
+        <div className="md:hidden border-b border-border bg-card px-5 py-4 flex items-center justify-between">
+          <div>
+            <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">Restaurant</div>
+            <div className="font-display text-base mt-1 truncate">{tenantName}</div>
+          </div>
           <UserButton />
         </div>
-        <div className="md:hidden border-b border-border overflow-x-auto flex gap-1 px-2 py-2 bg-card">
+        <div className="md:hidden border-b border-border overflow-x-auto flex gap-1 px-3 py-2 bg-card">
           {NAV.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
-              className="px-3 py-1.5 rounded-md text-xs whitespace-nowrap inline-flex items-center gap-1 hover:bg-muted"
+              className="px-3 py-1.5 rounded-md whitespace-nowrap inline-flex items-center gap-1 hover:bg-bg-alt"
             >
-              <Icon className="w-3.5 h-3.5" /> {label}
+              <Icon className="w-3.5 h-3.5 text-muted" />
+              <span className="font-mono text-[11px] tracking-[0.14em] uppercase">{label}</span>
             </Link>
           ))}
         </div>

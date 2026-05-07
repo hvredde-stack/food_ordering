@@ -37,20 +37,20 @@ export function MenuView({ restaurant, table, orderType, categories, dishes }: P
 
   return (
     <>
-      <header className="sticky top-0 z-30 bg-bg/85 backdrop-blur border-b border-border">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div>
-            <div className="text-sm font-semibold">{restaurant.name}</div>
-            <div className="text-xs text-muted">
-              {orderType === "takeout" ? "Takeout" : table ? `Table ${table.code}` : ""}
+      <header className="sticky top-0 z-30 bg-bg/90 backdrop-blur border-b border-border">
+        <div className="max-w-2xl mx-auto px-5 py-4 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted leading-none">
+              {orderType === "takeout" ? "Takeout" : table ? `Table ${table.code}` : "Menu"}
             </div>
+            <div className="font-display text-base mt-1 truncate">{restaurant.name}</div>
           </div>
           <Link href="/cart">
             <Button variant="secondary" className="relative">
               <ShoppingBag className="w-4 h-4" />
-              <span>Cart</span>
+              <span className="font-mono text-xs tracking-wider uppercase">Cart</span>
               {cart.count > 0 && (
-                <span className="absolute -top-1 -right-1 bg-fg text-bg rounded-full h-5 min-w-5 text-xs flex items-center justify-center px-1">
+                <span className="absolute -top-1 -right-1 bg-fg text-bg rounded-full h-5 min-w-5 text-[10px] font-mono flex items-center justify-center px-1 tabular-nums">
                   {cart.count}
                 </span>
               )}
@@ -86,8 +86,8 @@ export function MenuView({ restaurant, table, orderType, categories, dishes }: P
           const items = grouped.get(c.id) ?? [];
           if (items.length === 0) return null;
           return (
-            <section key={c.id} id={`cat-${c.id}`} className="scroll-mt-32 mb-8">
-              <h2 className="text-lg font-semibold mb-3">{c.name}</h2>
+            <section key={c.id} id={`cat-${c.id}`} className="scroll-mt-32 mb-12">
+              <h2 className="font-display text-3xl mb-5 tracking-tight">{c.name}</h2>
               <div className="grid gap-3">
                 {items.map((d) => (
                   <DishRow key={d.id} dish={d} currency={restaurant.currency} />
@@ -97,8 +97,8 @@ export function MenuView({ restaurant, table, orderType, categories, dishes }: P
           );
         })}
         {(grouped.get(null)?.length ?? 0) > 0 && (
-          <section className="mb-8">
-            <h2 className="text-lg font-semibold mb-3">Other</h2>
+          <section className="mb-12">
+            <h2 className="font-display text-3xl mb-5 tracking-tight">Other</h2>
             <div className="grid gap-3">
               {(grouped.get(null) ?? []).map((d) => (
                 <DishRow key={d.id} dish={d} currency={restaurant.currency} />
@@ -112,11 +112,15 @@ export function MenuView({ restaurant, table, orderType, categories, dishes }: P
         <div className="fixed bottom-4 left-4 right-4 max-w-2xl mx-auto z-40">
           <Button
             size="lg"
-            className="w-full shadow-lg justify-between"
+            className="w-full justify-between"
             onClick={() => router.push("/cart")}
           >
-            <span>{cart.count} item{cart.count === 1 ? "" : "s"} in cart</span>
-            <span>{formatMoney(cart.totalCents, restaurant.currency)} →</span>
+            <span className="font-mono text-xs tracking-[0.18em] uppercase">
+              {cart.count} item{cart.count === 1 ? "" : "s"}
+            </span>
+            <span className="font-mono tabular-nums text-sm">
+              {formatMoney(cart.totalCents, restaurant.currency)} →
+            </span>
           </Button>
         </div>
       )}
@@ -130,26 +134,26 @@ function DishRow({ dish, currency }: { dish: Dish; currency: string }) {
 
   return (
     <Card>
-      <CardBody className="flex gap-3 items-start">
+      <CardBody className="flex gap-4 items-start p-5">
         {dish.image_url && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={dish.image_url}
             alt={dish.name}
-            className="w-20 h-20 rounded-lg object-cover bg-muted"
+            className="w-24 h-24 rounded-md object-cover bg-bg-alt"
           />
         )}
         <div className="flex-1 min-w-0">
-          <div className="flex justify-between gap-3">
-            <h3 className="font-medium truncate">{dish.name}</h3>
-            <div className="font-semibold whitespace-nowrap">
+          <div className="flex justify-between gap-4 items-baseline">
+            <h3 className="font-display text-xl tracking-tight truncate">{dish.name}</h3>
+            <div className="font-mono text-sm tabular-nums whitespace-nowrap">
               {formatMoney(dish.price_cents, currency)}
             </div>
           </div>
           {dish.description && (
-            <p className="text-sm text-muted mt-1 line-clamp-2">{dish.description}</p>
+            <p className="text-sm text-muted mt-2 leading-relaxed line-clamp-3">{dish.description}</p>
           )}
-          <div className="mt-3">
+          <div className="mt-4">
             {line ? (
               <div className="inline-flex items-center bg-muted rounded-lg">
                 <button

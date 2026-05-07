@@ -125,15 +125,18 @@ export function KitchenBoard({ restaurantId, restaurantSlug, restaurantName, cur
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 bg-bg/90 backdrop-blur border-b border-border z-30">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold">{restaurantName} — Kitchen</h1>
-            <div className="text-xs text-muted">Live order queue</div>
+        <div className="max-w-7xl mx-auto px-5 py-4 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted leading-none">
+              Kitchen
+            </div>
+            <h1 className="font-display text-2xl mt-1 tracking-tight truncate">{restaurantName}</h1>
           </div>
           <div className="flex items-center gap-3">
             <SentimentPulse happy={recentHappyCount} sad={recentSadCount} />
             <Button variant="secondary" size="sm" onClick={refresh}>
-              <RotateCw className="w-4 h-4" /> Refresh
+              <RotateCw className="w-4 h-4" />
+              <span className="font-mono text-[11px] tracking-[0.14em] uppercase">Refresh</span>
             </Button>
           </div>
         </div>

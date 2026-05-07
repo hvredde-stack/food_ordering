@@ -50,27 +50,27 @@ export function CartView({ currency }: { currency: string }) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-4">
-      <Link href="/menu" className="inline-flex items-center text-sm text-muted gap-1 mb-3">
-        <ArrowLeft className="w-4 h-4" /> Back to menu
+    <div className="max-w-2xl mx-auto px-5 py-6">
+      <Link href="/menu" className="inline-flex items-center text-xs font-mono tracking-[0.18em] uppercase text-muted gap-1 mb-5 hover:text-fg transition">
+        <ArrowLeft className="w-3.5 h-3.5" /> Back to menu
       </Link>
-      <h1 className="text-2xl font-bold mb-4">Your order</h1>
+      <h1 className="font-display text-4xl tracking-tight mb-6">Your order</h1>
 
       {cart.lines.length === 0 ? (
-        <Card><CardBody className="text-center py-10 text-muted">Cart is empty</CardBody></Card>
+        <Card><CardBody className="text-center py-12 text-muted">Cart is empty</CardBody></Card>
       ) : (
         <Card>
           <div className="divide-y divide-border">
             {cart.lines.map((line) => (
-              <div key={line.dishId} className="p-4 flex items-start gap-3">
+              <div key={line.dishId} className="p-5 flex items-start gap-3">
                 <div className="flex-1 min-w-0">
-                  <div className="flex justify-between gap-2">
-                    <div className="font-medium truncate">{line.name}</div>
-                    <div className="font-semibold whitespace-nowrap">
+                  <div className="flex justify-between gap-2 items-baseline">
+                    <div className="font-display text-lg truncate">{line.name}</div>
+                    <div className="font-mono text-sm tabular-nums whitespace-nowrap">
                       {formatMoney(line.price_cents * line.quantity, currency)}
                     </div>
                   </div>
-                  <div className="text-xs text-muted mt-0.5">
+                  <div className="text-xs text-muted mt-1 font-mono">
                     {formatMoney(line.price_cents, currency)} each
                   </div>
                   <Textarea
@@ -118,17 +118,19 @@ export function CartView({ currency }: { currency: string }) {
                 className="mt-1"
               />
             </div>
-            <div className="flex justify-between items-center pt-2 border-t border-border">
-              <div className="text-sm text-muted">Total</div>
-              <div className="text-xl font-bold">
+            <div className="flex justify-between items-baseline pt-3 border-t border-border">
+              <div className="text-xs font-mono tracking-[0.18em] uppercase text-muted">Total</div>
+              <div className="font-mono text-2xl tabular-nums">
                 {formatMoney(cart.totalCents, currency)}
               </div>
             </div>
             {err && <div className="text-sm text-red-600">{err}</div>}
             <Button size="lg" className="w-full" onClick={place} disabled={busy}>
-              {busy ? "Placing order…" : "Place order"}
+              <span className="font-mono text-xs tracking-[0.18em] uppercase">
+                {busy ? "Placing order…" : "Place order"}
+              </span>
             </Button>
-            <p className="text-xs text-center text-muted">No payment required — pay at the table.</p>
+            <p className="text-xs text-center text-muted italic font-display">No payment required — pay at the table.</p>
           </CardFooter>
         </Card>
       )}

@@ -41,12 +41,14 @@ export default async function AdminOverview() {
   const sad   = (sentiment24h ?? []).filter((s) => s.kind === "sad").length;
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
+    <div className="max-w-6xl mx-auto p-8 space-y-8">
       <div>
-        <div className="text-xs uppercase tracking-wider text-muted">Overview</div>
-        <h1 className="text-3xl font-bold mt-1">{restaurant.name}</h1>
-        <div className="text-sm text-muted">
-          slug <code className="text-xs px-1.5 py-0.5 rounded bg-muted">{restaurant.slug}</code> · currency {restaurant.currency}
+        <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">Overview</div>
+        <h1 className="font-display text-4xl md:text-5xl mt-3 tracking-tight">{restaurant.name}</h1>
+        <div className="font-mono text-xs text-muted mt-3 space-x-3">
+          <span>/{restaurant.slug}</span>
+          <span>·</span>
+          <span>{restaurant.currency}</span>
         </div>
       </div>
 
@@ -91,8 +93,8 @@ function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <Card>
       <CardBody>
-        <div className="text-xs uppercase tracking-wider text-muted">{label}</div>
-        <div className="text-2xl font-bold mt-1">{value}</div>
+        <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">{label}</div>
+        <div className="font-display text-3xl mt-2 tracking-tight">{value}</div>
       </CardBody>
     </Card>
   );

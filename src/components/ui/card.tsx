@@ -2,10 +2,11 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 export function Card({ className, ...rest }: React.HTMLAttributes<HTMLDivElement>) {
+  // No shadow — editorial restraint. The hairline border is the entire surface treatment.
   return (
     <div
       className={cn(
-        "bg-card text-fg border border-border rounded-xl shadow-sm",
+        "bg-card text-fg border border-border rounded-xl",
         className
       )}
       {...rest}

@@ -115,13 +115,16 @@ export function ServerApp({ restaurantSlug, restaurantName, staffDisplayName }: 
   }
 
   return (
-    <div className="max-w-md mx-auto px-5 py-8">
-      <div className="flex items-center gap-2">
-        <Hammer className="w-5 h-5" />
-        <h1 className="text-2xl font-bold">Server app</h1>
+    <div className="max-w-md mx-auto px-6 py-10">
+      <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">
+        Server · {restaurantSlug}
       </div>
-      <p className="text-muted text-sm mt-1">
-        Signed in as <span className="font-medium text-fg">{staffDisplayName}</span> at {restaurantName} (<code>{restaurantSlug}</code>).
+      <h1 className="font-display text-4xl tracking-tight mt-3 flex items-center gap-2">
+        <Hammer className="w-6 h-6" /> {restaurantName}
+      </h1>
+      <p className="text-sm text-muted mt-3">
+        Signed in as <span className="text-fg">{staffDisplayName}</span>.
+        Scan a table QR to mark it cleaned and reset for the next party.
       </p>
 
       <Card className="mt-5">
