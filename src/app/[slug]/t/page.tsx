@@ -50,17 +50,13 @@ export default async function RestaurantLanding({
   return (
     <Centered>
       <div className="font-mono text-[11px] tracking-[0.22em] uppercase text-muted">
-        Welcome to
-      </div>
-      {/* Restaurant name is the headline — what the diner is here to see.
-          The clamp scales down for long names so a 24-character restaurant
-          still renders intelligibly on a 360px phone. text-balance keeps
-          line breaks elegant when the name wraps. */}
-      <h1
-        className="font-display font-light mt-5 leading-[0.95] tracking-tight text-balance break-words"
-        style={{ fontSize: "clamp(36px, 7vw, 72px)" }}
-      >
         {restaurant.name as string}
+      </div>
+      <h1
+        className="font-display font-light mt-6 leading-[0.95] tracking-[-0.02em]"
+        style={{ fontSize: "clamp(48px, 8vw, 96px)" }}
+      >
+        Welcome.
       </h1>
 
       {restaurant.dine_in_enabled && (
