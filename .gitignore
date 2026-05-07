@@ -7,3 +7,6 @@
 *.log
 .DS_Store
 *.tsbuildinfo
+deploy-only scripts
+setup-vercel.ps1
+upload-env*.ps1
