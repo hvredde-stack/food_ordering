@@ -4,7 +4,6 @@
 import "server-only";
 import { auth } from "@clerk/nextjs/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { getPlatformContext } from "@/lib/platform";
 import type { Restaurant } from "@/lib/types";
 
 export async function getAdminContext(): Promise<{
@@ -25,41 +24,17 @@ export async function getAdminContext(): Promise<{
 }
 
 /**
- * Bootstraps a restaurant for a freshly-signed-up admin who doesn't
- * yet own one. Idempotent: returns the existing record if present.
- *
- * Returns null when the user is a platform admin — they shouldn't get
- * a fake restaurant attached to them; they manage tenants from /platform.
+ * Look up the restaurant owned by a specific Clerk user. Returns null if
+ * none exists. Read-only — the wizard at /onboarding is responsible for
+ * creating restaurants now (auto-create on first /admin hit was confusing
+ * because it gave new users a default-named tenant they had to rename).
  */
-export async function ensureRestaurantForUser(input: {
-  userId: string;
-  name: string;
-  slug: string;
-}): Promise<Restaurant | null> {
+export async function getOwnedRestaurant(userId: string): Promise<Restaurant | null> {
   const supabase = getSupabaseAdmin();
-  const { data: existing } = await supabase
+  const { data } = await supabase
     .from("restaurants")
     .select("*")
-    .eq("owner_user_id", input.userId)
+    .eq("owner_user_id", userId)
     .maybeSingle();
-  if (existing) return existing as Restaurant;
-
-  // Skip auto-create for platform admins.
-  const platform = await getPlatformContext();
-  if (platform) return null;
-
-  // Generate a unique master takeout code on creation.
-  const takeoutCode = `to-${Math.random().toString(36).slice(2, 12)}`;
-  const { data, error } = await supabase
-    .from("restaurants")
-    .insert({
-      owner_user_id: input.userId,
-      name: input.name,
-      slug: input.slug,
-      takeout_code: takeoutCode,
-    })
-    .select("*")
-    .single();
-  if (error || !data) throw new Error(error?.message ?? "Failed to create restaurant");
-  return data as Restaurant;
+  return (data as Restaurant) ?? null;
 }

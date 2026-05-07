@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ensureRestaurantForUser } from "@/lib/auth";
+import { getOwnedRestaurant } from "@/lib/auth";
+import { getPlatformContext } from "@/lib/platform";
 import { auth } from "@clerk/nextjs/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -10,12 +11,12 @@ export default async function AdminOverview() {
   const { userId } = await auth();
   if (!userId) redirect("/admin/sign-in");
 
-  const restaurant = await ensureRestaurantForUser({
-    userId,
-    name: "My Restaurant",
-    slug: `r-${userId.slice(-6).toLowerCase()}-${Date.now().toString(36).slice(-4)}`,
-  });
-  if (!restaurant) redirect("/platform");
+  // Platform admins manage tenants from /platform; they shouldn't see /admin.
+  const platform = await getPlatformContext();
+  if (platform) redirect("/platform");
+
+  const restaurant = await getOwnedRestaurant(userId);
+  if (!restaurant) redirect("/onboarding");
 
   const supabase = getSupabaseAdmin();
   const sinceIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();

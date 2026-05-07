@@ -13,6 +13,9 @@ const isProtected = createRouteMatcher([
   "/api/server(.*)",
   "/platform(.*)",
   "/api/platform(.*)",
+  "/onboarding(.*)",
+  "/api/onboarding(.*)",
+  "/after-sign-in(.*)",
 ]);
 
 const isPublicAuth = createRouteMatcher([

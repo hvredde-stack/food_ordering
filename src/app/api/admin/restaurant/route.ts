@@ -1,29 +1,25 @@
-// GET /api/admin/restaurant — current admin's restaurant (creates one if missing).
+// GET   /api/admin/restaurant — return the signed-in user's restaurant.
 // PATCH /api/admin/restaurant — update name/slug/etc.
+//
+// The restaurant is created via /api/onboarding (self-serve) or
+// /api/platform/restaurants (platform admin onboards). This endpoint
+// returns 404 if no restaurant is linked yet.
 
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { json, parseJson, unauthorized, serverError } from "@/lib/api";
-import { ensureRestaurantForUser, getAdminContext } from "@/lib/auth";
+import { getOwnedRestaurant, getAdminContext } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-
-const slugify = (name: string) =>
-  name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
 
 export async function GET() {
   const { userId } = await auth();
   if (!userId) return unauthorized();
 
-  // Bootstrap a restaurant for new admins on first GET.
-  const restaurant = await ensureRestaurantForUser({
-    userId,
-    name: "My Restaurant",
-    slug: `r-${slugify(userId).slice(0, 12)}-${Date.now().toString(36)}`,
-  });
+  const restaurant = await getOwnedRestaurant(userId);
   if (!restaurant) {
     return NextResponse.json(
-      { error: "No restaurant linked to this account. Ask a platform admin to onboard you." },
+      { error: "No restaurant linked to this account. Visit /onboarding to set one up." },
       { status: 404 }
     );
   }

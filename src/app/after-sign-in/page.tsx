@@ -1,11 +1,15 @@
-// Post-signin router. Clerk's default fallback URL points here, so we
-// can route platform admins to /platform and restaurant admins to /admin
-// without /admin ever sitting in browser history (which made the back
-// button take platform admins to the restaurant view).
+// Post-signin router. Decides where the freshly-authenticated user lands:
+//   1. Platform admin → /platform
+//   2. Restaurant owner → /admin
+//   3. Brand new user (no restaurant yet) → /onboarding (self-serve wizard)
+//
+// Doing this in one tiny server component keeps /admin out of browser
+// history for platform admins and prevents unnecessary auto-creates.
 
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { getPlatformContext } from "@/lib/platform";
+import { getOwnedRestaurant } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -15,5 +19,9 @@ export default async function AfterSignIn() {
 
   const platform = await getPlatformContext();
   if (platform) redirect("/platform");
-  redirect("/admin");
+
+  const restaurant = await getOwnedRestaurant(userId);
+  if (restaurant) redirect("/admin");
+
+  redirect("/onboarding");
 }
