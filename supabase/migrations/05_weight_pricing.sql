@@ -18,9 +18,29 @@ alter table dishes
   add column if not exists price_unit text not null default 'each'
   check (price_unit in ('each', 'lb', 'kg', 'oz', 'g'));
 
+-- Drop the analytics view that references order_items.quantity — PG won't
+-- alter a column type while a view depends on it. Recreated below with
+-- the same shape after the column change.
+drop view if exists v_top_dishes;
+
 -- Allow fractional quantity on order_items
 alter table order_items
   alter column quantity type numeric(10,3) using quantity::numeric(10,3);
+
+-- Recreate the analytics view. Identical shape; sum() over numeric is
+-- numeric, so units_sold becomes numeric instead of bigint — that's
+-- fine for the platform overview which just renders it.
+create or replace view v_top_dishes as
+select
+  oi.restaurant_id,
+  oi.dish_id,
+  oi.dish_name,
+  sum(oi.quantity) as units_sold,
+  sum(oi.unit_price_cents * oi.quantity) as revenue_cents
+from order_items oi
+where oi.status <> 'cancelled'
+group by 1, 2, 3
+order by units_sold desc;
 
 -- Snapshot the unit on each order line. Defaulting to 'each' is the safe
 -- backfill: any existing line predates weight pricing.
