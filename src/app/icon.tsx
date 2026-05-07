@@ -1,8 +1,9 @@
 import { ImageResponse } from "next/og";
 
-// Brand mark — a "plate from above" silhouette in brass on warm walnut.
-// Universal restaurant symbol that survives rebranding (no letters), so we
-// don't need to regenerate when the wordmark changes.
+// Brand mark for the favicon / manifest 192px size. Brass hairline outer
+// square + filled inner square on warm walnut, matching the foil-stamp
+// lockup. PWA host platforms (iOS / Android) apply their own corner
+// rounding to the tile, so we render an unrounded walnut bg here.
 export const size = { width: 192, height: 192 };
 export const contentType = "image/png";
 
@@ -21,10 +22,10 @@ export default function Icon() {
       >
         <div
           style={{
-            width: 120,
-            height: 120,
-            borderRadius: "50%",
-            border: "6px solid #C9A76E",
+            width: 96,
+            height: 96,
+            border: "5px solid #C9A76E",
+            borderRadius: 5,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -32,10 +33,10 @@ export default function Icon() {
         >
           <div
             style={{
-              width: 30,
-              height: 30,
-              borderRadius: "50%",
+              width: 36,
+              height: 36,
               background: "#C9A76E",
+              borderRadius: 3,
             }}
           />
         </div>

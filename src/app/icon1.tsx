@@ -1,7 +1,9 @@
 import { ImageResponse } from "next/og";
 
-// Larger size for the manifest — Android's PWA install criteria look for at
-// least one icon at 512x512.
+// 512×512 — the size Android Chrome's PWA install criteria expect.
+// Proportions match public/brand/tapserve-app-icon.svg exactly so the
+// PWA tile, the marketing seal, and the in-product Logo component all
+// share one identity.
 export const size = { width: 512, height: 512 };
 export const contentType = "image/png";
 
@@ -20,10 +22,10 @@ export default function Icon1() {
       >
         <div
           style={{
-            width: 320,
-            height: 320,
-            borderRadius: "50%",
-            border: "16px solid #C9A76E",
+            width: 256,
+            height: 256,
+            border: "13px solid #C9A76E",
+            borderRadius: 14,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -31,10 +33,10 @@ export default function Icon1() {
         >
           <div
             style={{
-              width: 80,
-              height: 80,
-              borderRadius: "50%",
+              width: 96,
+              height: 96,
               background: "#C9A76E",
+              borderRadius: 8,
             }}
           />
         </div>

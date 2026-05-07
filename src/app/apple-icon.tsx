@@ -1,8 +1,9 @@
 import { ImageResponse } from "next/og";
 
-// iOS home-screen tile. iOS auto-rounds corners and ignores transparency, so
-// we render with an opaque walnut background. 180×180 is the standard
-// apple-touch-icon size used by all current iPhones and iPads.
+// iOS home-screen tile. iOS auto-rounds corners and ignores transparency,
+// so we render with an opaque walnut background. 180×180 is the standard
+// apple-touch-icon size. Mark proportions are scaled from the 512px
+// app-icon canvas so all sizes share one silhouette.
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
 
@@ -21,10 +22,10 @@ export default function AppleIcon() {
       >
         <div
           style={{
-            width: 112,
-            height: 112,
-            borderRadius: "50%",
-            border: "6px solid #C9A76E",
+            width: 90,
+            height: 90,
+            border: "5px solid #C9A76E",
+            borderRadius: 5,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -32,10 +33,10 @@ export default function AppleIcon() {
         >
           <div
             style={{
-              width: 28,
-              height: 28,
-              borderRadius: "50%",
+              width: 34,
+              height: 34,
               background: "#C9A76E",
+              borderRadius: 3,
             }}
           />
         </div>

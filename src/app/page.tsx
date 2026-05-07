@@ -3,6 +3,7 @@ import Image from "next/image";
 import { ArrowUpRight, ScanLine, ChefHat, BarChart3, Utensils } from "lucide-react";
 import { ScrollRevealInit } from "@/components/scroll-reveal-init";
 import { CursorLight } from "@/components/cursor-light";
+import { Logo } from "@/components/ui/logo";
 
 // Public marketing landing. Where ads, social posts, and word-of-mouth land.
 // Calm, editorial, one clear CTA per section. Sign-up flow is the goal.
@@ -14,8 +15,8 @@ export default function Home() {
       {/* Thin nav, transparent on hero, hairline border. */}
       <header className="sticky top-0 z-30 backdrop-blur-md bg-bg/85 border-b border-border/70">
         <nav className="max-w-[1400px] mx-auto px-[clamp(20px,5vw,60px)] h-[68px] flex items-center justify-between">
-          <Link href="/" className="font-display text-lg tracking-tight">
-            TapServe
+          <Link href="/" aria-label="TapServe — home" className="block">
+            <Logo className="h-7 w-auto" />
           </Link>
           <div className="flex items-center gap-8">
             <Link href="/admin/sign-in" className="nav-link hidden sm:inline-block">
@@ -283,8 +284,8 @@ export default function Home() {
         <div className="max-w-[1400px] mx-auto px-[clamp(20px,5vw,60px)] py-16">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
             <div>
-              <div className="font-display text-lg tracking-tight">TapServe</div>
-              <p className="text-sm text-muted mt-3 leading-relaxed max-w-[220px]">
+              <Logo className="h-6 w-auto" />
+              <p className="text-sm text-muted mt-4 leading-relaxed max-w-[220px]">
                 A quietly built ordering platform for considered restaurants.
               </p>
             </div>

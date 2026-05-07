@@ -7,6 +7,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { getOwnedRestaurant } from "@/lib/auth";
 import { getPlatformContext } from "@/lib/platform";
 import { OnboardingWizard } from "./wizard";
+import { Logo } from "@/components/ui/logo";
 
 export default async function OnboardingPage() {
   const { userId } = await auth();
@@ -31,7 +32,7 @@ export default async function OnboardingPage() {
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-border">
         <div className="max-w-[1400px] mx-auto px-[clamp(20px,5vw,60px)] h-[68px] flex items-center justify-between">
-          <div className="font-display text-lg tracking-tight">TapServe</div>
+          <Logo className="h-7 w-auto" />
           <div className="font-mono text-[11px] tracking-[0.22em] uppercase text-muted">
             Step 1 of 1 · Restaurant setup
           </div>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 80" role="img">
+  <title>TapServe</title>
+  <desc>TapServe logo for light surfaces — walnut mark with walnut Fraunces italic wordmark.</desc>
+  <rect x="3" y="5" width="70" height="70" rx="3" fill="none" stroke="#1A1410" stroke-width="2"/>
+  <rect x="26" y="28" width="24" height="24" rx="1.5" fill="#1A1410"/>
+  <text x="92" y="56" font-family="Fraunces, Georgia, ui-serif, serif" font-size="48" font-weight="400" font-style="italic" letter-spacing="-0.5" fill="#1A1410">TapServe</text>
+</svg>

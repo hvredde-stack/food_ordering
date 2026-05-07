@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img">
+  <title>TapServe app icon</title>
+  <desc>The TapServe app icon — brass mark with refined hairline on a walnut rounded tile.</desc>
+  <rect x="0" y="0" width="512" height="512" rx="112" fill="#1A1410"/>
+  <rect x="128" y="128" width="256" height="256" rx="14" fill="none" stroke="#C9A76E" stroke-width="13"/>
+  <rect x="208" y="208" width="96" height="96" rx="8" fill="#C9A76E"/>
+</svg>
