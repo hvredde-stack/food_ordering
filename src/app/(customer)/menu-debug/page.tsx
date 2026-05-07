@@ -1,6 +1,8 @@
 // TEMPORARY: same code path as /menu but wraps everything to surface the error.
 import { getActiveSession } from "@/lib/session";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { FeedbackForm } from "../feedback/feedback-form";
+import { SentimentButtons } from "@/components/customer/sentiment-buttons";
 
 export const dynamic = "force-dynamic";
 
@@ -28,8 +30,18 @@ export default async function MenuDebug() {
     out.categories_count = categories?.length ?? null;
     out.dishes_count = dishes?.length ?? null;
 
-    out.step = "all queries succeeded";
-    return <pre>{JSON.stringify(out, null, 2)}</pre>;
+    out.step = "all queries succeeded; rendering client components";
+    return (
+      <div>
+        <pre>{JSON.stringify(out, null, 2)}</pre>
+        <hr />
+        <h2>SentimentButtons:</h2>
+        <SentimentButtons />
+        <hr />
+        <h2>FeedbackForm:</h2>
+        <FeedbackForm />
+      </div>
+    );
   } catch (e) {
     out.threw = true;
     out.error_name = (e as Error).name;
